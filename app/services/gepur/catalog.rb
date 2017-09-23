@@ -4,19 +4,20 @@ module Gepur
     URI = URI('https://gepur.com/xml/gepur_catalog.csv')
 
     def update
-      IO.copy_stream(open(URI), FILENAME)
+      IO.copy_stream open(URI), FILENAME
     end
 
     def read
       # Gepur catalog csv contains two concatenated tables:
-      # - Categories with headers 'id, category, parentId'
-      # - Products with headers 'id_product, avaliable, ...'
-      #
-      # That is why we start by reading categories
-      reading = :categories
-
+      # - First goes Categories with headers `id, category, parentId`
+      # - Then Products with headers `id_product, avaliable, ...`
+      reading = nil
       CSV.foreach FILENAME do |row|
-        next reading = :products if row[0] == 'id_product'
+        if row[1] == 'category'
+          next reading = :categories
+        elsif row[0] == 'id_product'
+          next reading = :products
+        end
 
         store row, reading
       end
@@ -24,9 +25,8 @@ module Gepur
 
     private
 
-    def store(categories_or_products)
-
+    def store(data, type)
+      
     end
-
   end
 end
