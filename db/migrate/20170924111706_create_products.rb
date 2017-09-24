@@ -1,7 +1,7 @@
 class CreateProducts < ActiveRecord::Migration[5.1]
   def change
     create_table :products do |t|
-      t.string :name
+      t.string :title
       t.boolean :is_available
       t.integer :remote_id
       t.belongs_to :category, foreign_key: true

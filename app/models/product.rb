@@ -3,7 +3,7 @@
 # Table name: products
 #
 #  id           :integer          not null, primary key
-#  name         :string
+#  title        :string
 #  is_available :boolean
 #  remote_id    :integer
 #  category_id  :integer

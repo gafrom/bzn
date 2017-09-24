@@ -24,7 +24,7 @@ ActiveRecord::Schema.define(version: 20170924111706) do
   end
 
   create_table "products", force: :cascade do |t|
-    t.string "name"
+    t.string "title"
     t.boolean "is_available"
     t.integer "remote_id"
     t.bigint "category_id"
