@@ -14,10 +14,11 @@ module Gepur
       reading = nil
       CSV.foreach PATH_TO_FILE, col_sep: ';' do |row|
         if row[1] == 'category'
-          next reading = :category
+          puts "Reading table `categories` with columns: #{row}"
+          next reading = :categories
         elsif row[0] == 'id_product'
-          return puts("Emergency exit")
-          next reading = :product
+          puts "Reading table `products` with columns: #{row}"
+          next reading = :products
         end
 
         store row, reading
@@ -44,13 +45,16 @@ module Gepur
     end
 
     def store(data, type)
-      if type == :category     
+      case type
+      when :categories
         remote_id, title, remote_parent_id = data
         parent = Category.find_by! remote_id: remote_parent_id
         Category.where(remote_id: remote_id).first_or_create do |cat|
           cat.assign_attributes title: title, parent: parent
           puts cat.attributes
         end
+      when :products
+        byebug
       end
     end
   end
