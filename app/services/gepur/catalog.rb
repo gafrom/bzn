@@ -6,6 +6,11 @@ module Gepur
     PATH_TO_FILE = Rails.root.join('storage', 'gepur_catalog.csv')
     URI = URI('https://gepur.com/xml/gepur_catalog.csv')
 
+    def initialize
+      @failures_count = 0
+      @success_count  = 0
+    end
+
     def read
       ensure_local_copy_is_fresh
       # Gepur catalog csv contains two concatenated tables:
@@ -23,6 +28,8 @@ module Gepur
 
         store row, reading
       end
+
+      puts "Successes: #{@success_count}\nFailures: #{@failures_count}"
     end
 
     private
@@ -54,8 +61,31 @@ module Gepur
           puts cat.attributes
         end
       when :products
-        byebug
+        attrs = product_attributes_from data
+
+        product = Product.find_by remote_id: attrs[:remote_id]
+        product ? product.update(attrs) : Product.create(attrs)
+
+        @success_count += 1
       end
+    rescue NoMethodError
+      @failures_count += 1
+    end
+
+    def product_attributes_from(data)
+      attrs = %i[remote_id is_available remote_category_id _ title url description
+                 collection color sizes _ price images].zip(data).to_h
+      attrs.delete :_
+      attrs.merge! supplier: Gepur.supplier
+
+      attrs[:category] = Category.find_by! remote_id: attrs.delete(:remote_category_id)
+      attrs[:is_available] = attrs[:is_available].downcase == 'true'
+      attrs[:url]          = attrs[:url][/https?:\/\/gepur\.com\/product\/([^\s\n\t]+)/, 1]
+      attrs[:sizes]        = attrs[:sizes].gsub(/\s/, '').downcase.split(',').compact
+      attrs[:price]        = attrs[:price][/RUB:(\d+)/, 1]
+      attrs[:images]       = attrs[:images].gsub(/\/[^\/]+\/([^\/]+(,|\z))/, '/origins/\1').split(',').compact
+
+      attrs
     end
   end
 end
