@@ -58,7 +58,6 @@ module Gepur
         parent = Category.find_by! remote_id: remote_parent_id
         Category.where(remote_id: remote_id).first_or_create do |cat|
           cat.assign_attributes title: title, parent: parent
-          puts cat.attributes
         end
       when :products
         attrs = product_attributes_from data
