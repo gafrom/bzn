@@ -27,15 +27,16 @@ ActiveRecord::Schema.define(version: 20170924111706) do
     t.string "title"
     t.boolean "is_available"
     t.integer "remote_id"
+    t.integer "price"
+    t.integer "compare_price"
     t.bigint "category_id"
     t.bigint "supplier_id"
     t.string "url"
     t.text "description"
     t.string "collection"
     t.string "color"
-    t.string "sizes"
-    t.integer "price"
-    t.string "images"
+    t.string "sizes", default: [], array: true
+    t.string "images", default: [], array: true
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["category_id"], name: "index_products_on_category_id"

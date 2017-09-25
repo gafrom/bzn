@@ -74,16 +74,17 @@ module Gepur
 
     def product_attributes_from(data)
       attrs = %i[remote_id is_available remote_category_id _ title url description
-                 collection color sizes _ price images].zip(data).to_h
+                 collection color sizes compare_price price images].zip(data).to_h
       attrs.delete :_
       attrs.merge! supplier: Gepur.supplier
 
       attrs[:category] = Category.find_by! remote_id: attrs.delete(:remote_category_id)
-      attrs[:is_available] = attrs[:is_available].downcase == 'true'
-      attrs[:url]          = attrs[:url][/https?:\/\/gepur\.com\/product\/([^\s\n\t]+)/, 1]
-      attrs[:sizes]        = attrs[:sizes].gsub(/\s/, '').downcase.split(',').compact
-      attrs[:price]        = attrs[:price][/RUB:(\d+)/, 1]
-      attrs[:images]       = attrs[:images].gsub(/\/[^\/]+\/([^\/]+(,|\z))/, '/origins/\1').split(',').compact
+      attrs[:is_available]  = attrs[:is_available].downcase == 'true'
+      attrs[:url]           = attrs[:url][/https?:\/\/gepur\.com\/product\/([^\s\n\t]+)/, 1]
+      attrs[:sizes]         = attrs[:sizes].gsub(/\s/, '').downcase.split(',').compact
+      attrs[:price]         = attrs[:price][/RUB:(\d+)/, 1]
+      attrs[:compare_price] = attrs[:compare_price][/RUB:(\d+)/, 1]
+      attrs[:images]        = attrs[:images].gsub(/\/[^\/]+\/([^\/]+(,|\z))/, '/origins/\1').split(',').compact
 
       attrs
     end

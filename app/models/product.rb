@@ -2,21 +2,22 @@
 #
 # Table name: products
 #
-#  id           :integer          not null, primary key
-#  title        :string
-#  is_available :boolean
-#  remote_id    :integer
-#  category_id  :integer
-#  supplier_id  :integer
-#  url          :string
-#  description  :text
-#  collection   :string
-#  color        :string
-#  sizes        :string
-#  price        :integer
-#  images       :string
-#  created_at   :datetime         not null
-#  updated_at   :datetime         not null
+#  id            :integer          not null, primary key
+#  title         :string
+#  is_available  :boolean
+#  remote_id     :integer
+#  price         :integer
+#  compare_price :integer
+#  category_id   :integer
+#  supplier_id   :integer
+#  url           :string
+#  description   :text
+#  collection    :string
+#  color         :string
+#  sizes         :string           default([]), is an Array
+#  images        :string           default([]), is an Array
+#  created_at    :datetime         not null
+#  updated_at    :datetime         not null
 #
 # Indexes
 #
