@@ -10,6 +10,7 @@ class CreateProducts < ActiveRecord::Migration[5.1]
       t.belongs_to :supplier, foreign_key: true
       t.string :url
       t.text :description
+      t.string :slug
       t.string :collection
       t.string :color
       t.string :sizes, array: true, default: []

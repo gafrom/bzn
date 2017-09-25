@@ -33,6 +33,7 @@ ActiveRecord::Schema.define(version: 20170924111706) do
     t.bigint "supplier_id"
     t.string "url"
     t.text "description"
+    t.string "slug"
     t.string "collection"
     t.string "color"
     t.string "sizes", default: [], array: true
