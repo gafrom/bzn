@@ -32,4 +32,12 @@
 class Product < ApplicationRecord
   belongs_to :category
   belongs_to :supplier
+
+  def to_csv(&block)
+    if block_given?
+      sizes.each { |size| yield [title, size] }
+    else
+      sizes.map { |size| [title, size] }
+    end
+  end
 end
