@@ -12,6 +12,7 @@
 #  supplier_id   :integer
 #  url           :string
 #  description   :text
+#  slug          :string
 #  collection    :string
 #  color         :string
 #  sizes         :string           default([]), is an Array
@@ -31,14 +32,52 @@
 #
 
 class Product < ApplicationRecord
+  after_create :set_slug
+
   belongs_to :category
   belongs_to :supplier
 
   def to_csv(&block)
-    if block_given?
-      sizes.each { |size| yield [title, size] }
-    else
-      sizes.map { |size| [title, size] }
+    return csv_rows unless block_given?
+
+    csv_rows.each { |row| yield row }
+  end
+
+  def stock
+    is_available ? 1 : 0
+  end
+
+  private
+
+  def csv_rows
+    @csv_rows ||= begin
+      sizes.map do |size|
+        csv_row_for size
+      end
     end
+  end
+
+  def csv_row_for(size)
+    cat_titles = category.upto_root.pluck :title
+    fail IndexError unless cat_titles.count.between? 1, Export::CATEGORIES_DEPTH
+    pads_num = Export::CATEGORIES_DEPTH - cat_titles.count
+
+    cat_titles + [nil] * pads_num + [
+      id,
+      title,
+      price,
+      compare_price,
+      stock,
+      description.gsub(/\r/, ''),
+      images.join(' '),
+      slug,
+      supplier.name,
+      size,
+      color
+    ]
+  end
+
+  def set_slug
+    update_column :slug, Slug[title].concat("-#{id}")
   end
 end

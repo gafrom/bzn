@@ -1,4 +1,7 @@
+require 'csv'
+
 class Export
+  CATEGORIES_DEPTH = 5
   PATH_TO_FILE = Rails.root.join('storage', 'export.csv')
 
   def csv
