@@ -83,7 +83,9 @@ module Gepur
       attrs[:sizes]         = attrs[:sizes].gsub(/\s/, '').downcase.split(',').compact
       attrs[:price]         = attrs[:price][/RUB:(\d+)/, 1]
       attrs[:compare_price] = attrs[:compare_price][/RUB:(\d+)/, 1]
-      attrs[:images]        = attrs[:images].gsub(/\/[^\/]+\/([^\/]+(,|\z))/, '/origins/\1').split(',').compact
+      attrs[:images]        = attrs[:images].gsub(/\/[^\/]+\/([^\/]+(,|\z))/, '/origins/\1')
+                                            .gsub(/https?:\/\/gepur\.com/, 'http://151.248.118.98')
+                                            .split(',').compact
 
       attrs
     end
