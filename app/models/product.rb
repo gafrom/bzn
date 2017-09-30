@@ -47,11 +47,19 @@ class Product < ApplicationRecord
     is_available ? 1 : 0
   end
 
+  def full_url
+    "#{supplier.host}#{url}"
+  end
+
+  def sizes
+    SizeArray.new super, self
+  end
+
   private
 
   def csv_rows
     @csv_rows ||= begin
-      sizes.map do |size|
+      sizes.russian.map do |size|
         csv_row_for size
       end
     end
@@ -73,7 +81,9 @@ class Product < ApplicationRecord
       slug,
       supplier.name,
       size,
-      color
+      color,
+      collection,
+      full_url
     ]
   end
 

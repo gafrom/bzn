@@ -11,4 +11,8 @@
 
 class Supplier < ApplicationRecord
   has_many :products
+
+  def domain
+    name.constantize
+  end
 end
