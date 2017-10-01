@@ -11,7 +11,7 @@ module Gepur
       @success_count  = 0
     end
 
-    def read
+    def sync
       ensure_local_copy_is_fresh
       # Gepur catalog csv contains two concatenated tables:
       # - First goes Categories with headers `id, category, parentId`
