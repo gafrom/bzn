@@ -13,7 +13,13 @@ module Gepur
       '4xl' => '54',
       '5xl' => '56',
       '6xl' => '58',
-      'ун'  => 'единый'
+      'ун'  => 'единый',
+
+      # iphone cases
+      '6s'  => 'iPhone 6S',
+      '6s+' => 'iPhone 6S+',
+      '7s'  => 'iPhone 7S',
+      '7s+' => 'iPhone 7S+'
     }.freeze
     PERMYAKOVA = {
       # plus sizes
