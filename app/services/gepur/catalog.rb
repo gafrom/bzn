@@ -80,7 +80,7 @@ module Gepur
       attrs[:category] = Category.find_by! remote_id: attrs.delete(:remote_category_id)
       attrs[:is_available]  = attrs[:is_available].downcase == 'true'
       attrs[:url]           = attrs[:url][/https?:\/\/gepur\.com\/product\/([^\s\n\t]+)/, 1]
-      attrs[:sizes]         = attrs[:sizes].gsub(/\s/, '').downcase.split(',').compact
+      attrs[:sizes]         = attrs[:sizes].downcase.split(', ').compact
       attrs[:price]         = attrs[:price][/RUB:(\d+)/, 1]
       attrs[:compare_price] = attrs[:compare_price][/RUB:(\d+)/, 1]
       attrs[:images]        = attrs[:images].gsub(/\/[^\/]+\/([^\/]+(,|\z))/, '/origins/\1')
