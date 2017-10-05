@@ -1,24 +1,9 @@
-# README
+# System of independent concurrent web scrapers
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+## How to launch?
 
-Things you may want to cover:
+Sorry, there is no way.
 
-* Ruby version
+## How to deploy?
 
-* System dependencies
-
-* Configuration
-
-* Database creation
-
-* Database initialization
-
-* How to run the test suite
-
-* Services (job queues, cache servers, search engines, etc.)
-
-* Deployment instructions
-
-* ...
+No way either.
