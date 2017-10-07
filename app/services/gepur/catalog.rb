@@ -3,6 +3,7 @@ require 'csv'
 
 module Gepur
   class Catalog
+    STALE_IN = 10.hours
     PATH_TO_FILE = Rails.root.join('storage', 'gepur_catalog.csv')
     URI = URI('https://gepur.com/xml/gepur_catalog.csv')
 
@@ -35,7 +36,7 @@ module Gepur
     private
 
     def ensure_local_copy_is_fresh
-      update if empty? || (last_modified_at + 10.hours).past?
+      update if empty? || (last_modified_at + STALE_IN).past?
     end
 
     def empty?
