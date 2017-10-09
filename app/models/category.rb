@@ -15,9 +15,20 @@ class Category < ApplicationRecord
   has_many :children, class_name: 'Category', foreign_key: 'parent_id'
   belongs_to :parent, class_name: 'Category', optional: true
 
+  def self.diagram
+    puts find(1).show
+    nil
+  end
+
   def upto_root
     return [self] unless parent
 
     parent.upto_root << self
+  end
+
+  def show(indent = 0)
+    picture = "#{'  ' * indent} => #{id}, # #{title}\n"
+    children.each { |child| picture << child.show(indent + 1) }
+    picture
   end
 end
