@@ -37,6 +37,8 @@ class Product < ApplicationRecord
   belongs_to :category
   belongs_to :supplier
 
+  validates :title, presence: true
+
   def to_csv(&block)
     return csv_rows unless block_given?
 
