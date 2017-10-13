@@ -50,10 +50,10 @@ module VeraNova
 
     def parse(uri)
       page = Nokogiri::HTML open(uri)
-      product_attributes_from page, uri
+      product_attributes_from page
     end
 
-    def product_attributes_from(page, uri)
+    def product_attributes_from(page)
       attrs = {}
       attrs[:title] = page.css('[itemprop="name"]').first.text
       attrs[:category] = Categorizer.new.from_title attrs[:title]
