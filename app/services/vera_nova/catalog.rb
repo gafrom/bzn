@@ -5,6 +5,8 @@ module VeraNova
   class Catalog
     HOST = 'veranova.ru'
     STALE_IN = 10.hours
+    THREADS_NUM = 24
+    LOG_FILE = Rails.root.join 'log', 'parsing.log'
     LINKS_LIST_FILE = Rails.root.join 'storage', "#{self.name.underscore}.links"
     LINKS_LIST_URL = URI 'http://veranova.ru/sitemap-product.xml'
 
@@ -12,6 +14,8 @@ module VeraNova
       @failures_count = 0
       @success_count  = 0
       @skipped_count  = 0
+      @pool = ThreadPool.new THREADS_NUM
+      @logger = Logger.new LOG_FILE
     end
 
     def sync
@@ -29,23 +33,33 @@ module VeraNova
     def process_links
       CSV.foreach LINKS_LIST_FILE do |link|
         url, modified_at = link
-        print "Processing #{url}... "
-        product = Product.find_by url: url, supplier: VeraNova.supplier
-        next skip if fresh? product, modified_at.to_date
+        product = Product.find_or_initialize_by url: url, supplier: VeraNova.supplier
+        next skip url if fresh? product, modified_at
 
-        attrs = parse(URI("http://#{HOST}#{url}")).merge!(url: url)
-        store attrs, product
+        @pool.run { synchronize url, product }
       end
+
+      @pool.await_completion
 
       puts "Successes: #{@success_count}\n" \
            "Failures: #{@failures_count}\n" \
            "Not modified: #{@skipped_count}"
     end
 
+    def synchronize(url, product)
+      attrs = parse URI("http://#{HOST}#{url}")
+      product.update attrs
+      log_success_for product
+      @success_count += 1
+    rescue NoMethodError, NotImplementedError => error
+      log_failure_for product.url, error.message
+      @failures_count += 1
+    end
+
     # in case a product's web page is not modified
-    def skip
+    def skip(url)
       @skipped_count += 1
-      puts 'Skipped'
+      puts "Processing #{url}... Skipped"
     end
 
     def parse(uri)
@@ -69,21 +83,6 @@ module VeraNova
       # no color available at the web site
       # no collection available at the web site
       attrs
-    rescue NoMethodError
-      @failures_count += 1
-      false
-    end
-
-    def store(attrs, product = nil)
-      return puts 'Failed' unless attrs
-
-      if product then product.update(attrs) else
-        attrs.merge! supplier: VeraNova.supplier
-        Product.create attrs
-      end
-
-      @success_count += 1
-      puts 'Done'
     end
 
     def update_links
@@ -95,8 +94,9 @@ module VeraNova
       puts 'Done'
     end
 
-    def fresh?(product, modified_at)
-      product && product.updated_at > modified_at
+    def fresh?(product, modified_at_as_string)
+      updated_at = product.updated_at
+      updated_at && updated_at > modified_at_as_string.to_date
     end
 
     def empty?
@@ -114,14 +114,20 @@ module VeraNova
       Nokogiri::XML(content).css('url').inject({}) do |links, node|
         url = node.css('loc').first.text.split(HOST).last
         modified_at = node.css('lastmod').first.text.to_date
-        log_error url unless url && modified_at
+        log_failure_for url, '[SITEMAP PARSING]' unless url && modified_at
 
         links.merge! url => modified_at
       end
     end
 
-    def log_error(data = nil)
-      Rails.logger.error "[#{self.class.name}] #{data}"
+    def log_failure_for(url, error)
+      msg = "Processing #{url}... Failed: #{error}"
+      @logger.error msg
+      puts msg
+    end
+
+    def log_success_for(product)
+      puts "Processing #{product.url}... Done"
     end
   end
 end
