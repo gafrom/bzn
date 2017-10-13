@@ -18,7 +18,7 @@ class Categorizer
       return ::Category.find id if /#{pattern}/i =~ title
     end
 
-    raise "[PARSING ERROR] cannot infer category from title: '#{title}'"
+    raise NotImplementedError, "[PARSING ERROR] cannot infer category from title: '#{title}'"
   end
 end
 
