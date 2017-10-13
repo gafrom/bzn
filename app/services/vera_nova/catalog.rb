@@ -121,13 +121,13 @@ module VeraNova
     end
 
     def log_failure_for(url, error)
-      msg = "Processing #{url}... Failed: #{error}"
+      msg = "Processing #{url}... Failed: #{error}\n"
       @logger.error msg
-      puts msg
+      print msg
     end
 
     def log_success_for(product)
-      puts "Processing #{product.url}... Done"
+      print "Processing #{product.url}... Done\n"
     end
   end
 end
