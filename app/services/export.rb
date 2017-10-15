@@ -6,7 +6,7 @@ class Export
 
   def csv(how_many = nil)
     CSV.open PATH_TO_FILE, 'wb' do |file|
-      Product.includes(:supplier, :category).limit(how_many).each do |product|
+      Product.available.includes(:supplier, :category).limit(how_many).each do |product|
         product.to_csv { |row| file << row }
       end
     end
