@@ -27,7 +27,6 @@ module VeraNova
 
     def ensure_links_are_fresh
       update_links if empty? || (last_modified_at + STALE_IN).past?
-      # update_links
     end
 
     def process_links
