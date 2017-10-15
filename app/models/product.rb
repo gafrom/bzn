@@ -32,12 +32,16 @@
 #
 
 class Product < ApplicationRecord
+  PROXY_HOST = 'http://151.248.118.98'.freeze
+
   after_create :set_slug
 
   belongs_to :category
   belongs_to :supplier
 
   validates :title, presence: true
+
+  scope :available, -> { where is_available: true }
 
   def to_csv(&block)
     return csv_rows unless block_given?
@@ -55,6 +59,10 @@ class Product < ApplicationRecord
 
   def sizes
     SizeArray.new super, self
+  end
+
+  def proxied_images
+    images.map { |image_path| "#{PROXY_HOST}/#{supplier.slug}#{image_path}" }
   end
 
   private
@@ -79,7 +87,7 @@ class Product < ApplicationRecord
       compare_price,
       stock,
       description.gsub(/\r/, ''),
-      images.join(' '),
+      proxied_images.join(' '),
       slug,
       supplier.name,
       size,
