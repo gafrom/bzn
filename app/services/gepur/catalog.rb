@@ -8,8 +8,12 @@ module Gepur
     URI = URI('https://gepur.com/xml/gepur_catalog.csv')
 
     def initialize
+      @processed = []
       @failures_count = 0
-      @success_count  = 0
+      @created_count  = 0
+      @updated_count  = 0
+      @skipped_count  = 0
+      @hidden_count   = 0
     end
 
     def sync
@@ -30,10 +34,24 @@ module Gepur
         store row, reading
       end
 
-      puts "Successes: #{@success_count}\nFailures: #{@failures_count}"
+      hide_removed_products
+
+      puts "Created: #{@created_count}\n" \
+           "Updated: #{@updated_count}\n" \
+           "Skipped: #{@skipped_count}\n" \
+           "Hidden: #{@hidden_count}\n" \
+           "Failures: #{@failures_count}"
     end
 
     private
+
+    def hide_removed_products
+      removed_from_catalog = Product.where(supplier: Gepur.supplier, is_available: true)
+                                    .where.not(id: @processed)
+      removed_from_catalog.update_all is_available: false
+
+      @hidden_count = removed_from_catalog.count
+    end
 
     def ensure_local_copy_is_fresh
       update if empty? || (last_modified_at + STALE_IN).past?
@@ -44,7 +62,7 @@ module Gepur
     end
 
     def last_modified_at
-      ::File.mtime PATH_TO_FILE
+      File.mtime PATH_TO_FILE
     end
 
     def update
@@ -63,10 +81,17 @@ module Gepur
       when :products
         attrs = product_attributes_from data
 
-        product = Product.find_by remote_id: attrs[:remote_id]
-        product ? product.update(attrs) : Product.create(attrs)
+        product = Product.find_or_initialize_by remote_id: attrs[:remote_id]
+        product.assign_attributes attrs
+        was_new_record = product.new_record?
+        was_changed    = product.changed?
+        return @failures_count += 1 unless product.save
 
-        @success_count += 1
+        @processed << product.id
+
+        return @created_count += 1 if was_new_record
+        return @updated_count += 1 if was_changed
+        @skipped_count += 1
       end
     rescue NoMethodError
       @failures_count += 1
@@ -85,7 +110,7 @@ module Gepur
       attrs[:price]         = attrs[:price][/RUB:(\d+)/, 1]
       attrs[:compare_price] = attrs[:compare_price][/RUB:(\d+)/, 1]
       attrs[:images]        = attrs[:images].gsub(/\/[^\/]+\/([^\/]+(,|\z))/, '/origins/\1')
-                                            .gsub(/https?:\/\/gepur\.com/, 'http://151.248.118.98')
+                                            .gsub(/https?:\/\/gepur\.com/, '')
                                             .split(',').compact
 
       attrs
