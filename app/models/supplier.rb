@@ -15,4 +15,8 @@ class Supplier < ApplicationRecord
   def domain
     name.constantize
   end
+
+  def slug
+    name.underscore
+  end
 end
