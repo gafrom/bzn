@@ -1,6 +1,6 @@
 desc 'Update products on local machine'
-task :sync, [:supplier] => :environment do |t, params|
-  supplier = params[:supplier].to_s.camelcase.constantize
+task sync: :environment do
+  supplier_module = ENV['supplier'].to_s.camelcase.constantize
 
-  supplier::Catalog.new.sync
+  supplier_module::Catalog.new(ENV['host']).sync
 end
