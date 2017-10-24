@@ -32,7 +32,7 @@ module VeraNova
     def process_links
       CSV.foreach LINKS_LIST_FILE do |link|
         url, modified_at = link
-        product = Product.find_or_initialize_by url: url, supplier: VeraNova.supplier
+        product = Product.find_or_initialize_by remote_key: url, supplier: VeraNova.supplier
         next skip url if fresh? product, modified_at
 
         @pool.run { synchronize url, product }
@@ -47,7 +47,9 @@ module VeraNova
 
     def synchronize(url, product)
       attrs = parse URI("http://#{HOST}#{url}")
-      product.update attrs
+      all_attrs = attrs.merge url: url
+
+      product.update all_attrs
       log_success_for product
       @success_count += 1
     rescue NoMethodError, NotImplementedError => error
