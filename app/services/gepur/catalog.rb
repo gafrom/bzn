@@ -72,16 +72,18 @@ module Gepur
 
     def store(data, type)
       case type
-      when :categories
-        remote_id, title, remote_parent_id = data
-        parent = Category.find_by! remote_id: remote_parent_id
-        Category.where(remote_id: remote_id).first_or_create do |cat|
-          cat.assign_attributes title: title, parent: parent
-        end
+      # do not do anything for categories entries
+      #
+      # when :categories
+      #   remote_id, title, remote_parent_id = data
+      #   parent = Categorizer.new(remote_parent_id).category
+      #   Category.where(remote_id: remote_id).first_or_create do |cat|
+      #     cat.assign_attributes title: title, parent: parent
+      #   end
       when :products
         attrs = product_attributes_from data
 
-        product = Product.find_or_initialize_by remote_id: attrs[:remote_id]
+        product = Product.find_or_initialize_by remote_key: attrs[:remote_key]
         product.assign_attributes attrs
         was_new_record = product.new_record?
         was_changed    = product.changed?
@@ -98,12 +100,13 @@ module Gepur
     end
 
     def product_attributes_from(data)
-      attrs = %i[remote_id is_available remote_category_id _ title url description
+      attrs = %i[remote_key is_available remote_category_id _ title url description
                  collection color sizes compare_price price images].zip(data).to_h
       attrs.delete :_
       attrs.merge! supplier: Gepur.supplier
 
-      attrs[:category] = Category.find_by! remote_id: attrs.delete(:remote_category_id)
+      categorizer = Gepur::Categorizer.new attrs.delete(:remote_category_id)
+      attrs[:category_id]   = categorizer.category_id
       attrs[:is_available]  = attrs[:is_available].downcase == 'true'
       attrs[:url]           = attrs[:url][/https?:\/\/gepur\.com\/product\/([^\s\n\t]+)/, 1]
       attrs[:sizes]         = attrs[:sizes].downcase.split(', ').compact
