@@ -2,19 +2,11 @@ require 'open-uri'
 require 'csv'
 
 module Gepur
-  class Catalog
-    STALE_IN = 10.hours
+  class Catalog < ::Catalog
+    include Catalogue::WithSupplier
+
     PATH_TO_FILE = Rails.root.join('storage', 'gepur_catalog.csv')
     URI = URI('https://gepur.com/xml/gepur_catalog.csv')
-
-    def initialize
-      @processed = []
-      @failures_count = 0
-      @created_count  = 0
-      @updated_count  = 0
-      @skipped_count  = 0
-      @hidden_count   = 0
-    end
 
     def sync
       ensure_local_copy_is_fresh
@@ -103,7 +95,8 @@ module Gepur
       attrs = %i[remote_key is_available remote_category_id _ title url description
                  collection color sizes compare_price price images].zip(data).to_h
       attrs.delete :_
-      attrs.merge! supplier: Gepur.supplier
+      
+      attrs.merge! supplier: Supplier.find_by!
 
       categorizer = Gepur::Categorizer.new attrs.delete(:remote_category_id)
       attrs[:category_id]   = categorizer.category_id

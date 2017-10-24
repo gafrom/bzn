@@ -2,20 +2,16 @@ require 'open-uri'
 require 'csv'
 
 module VeraNova
-  class Catalog
+  class Catalog < ::Catalog
+    include Catalogue::WithSupplier
+    include Catalogue::WithLinksFile
+
     HOST = 'veranova.ru'
-    STALE_IN = 10.hours
-    THREADS_NUM = 24
-    LOG_FILE = Rails.root.join 'log', 'parsing.log'
-    LINKS_LIST_FILE = Rails.root.join 'storage', "#{self.name.underscore}.links"
     LINKS_LIST_URL = URI 'http://veranova.ru/sitemap-product.xml'
 
-    def initialize
-      @failures_count = 0
-      @success_count  = 0
-      @skipped_count  = 0
-      @pool = ThreadPool.new THREADS_NUM
-      @logger = Logger.new LOG_FILE
+    def initialize(*args)
+      super
+      @success_count = 0
     end
 
     def sync
@@ -25,12 +21,8 @@ module VeraNova
 
     private
 
-    def ensure_links_are_fresh
-      update_links if empty? || (last_modified_at + STALE_IN).past?
-    end
-
     def process_links
-      CSV.foreach LINKS_LIST_FILE do |link|
+      CSV.foreach path_to_links_file do |link|
         url, modified_at = link
         product = Product.find_or_initialize_by remote_key: url, supplier: VeraNova.supplier
         next skip url if fresh? product, modified_at
@@ -88,7 +80,7 @@ module VeraNova
 
     def update_links
       print "Updating links from #{LINKS_LIST_URL}... "
-      CSV.open LINKS_LIST_FILE, 'wb' do |file|
+      CSV.open path_to_links_file, 'wb' do |file|
         links = extract_links open(LINKS_LIST_URL).read
         links.each { |url, modified_at| file << [url, modified_at] }
       end
@@ -100,17 +92,6 @@ module VeraNova
       updated_at && updated_at > modified_at_as_string.to_date
     end
 
-    def empty?
-      dir = File.dirname LINKS_LIST_FILE
-      Dir.mkdir dir unless File.directory? dir
-
-      !File.exists? LINKS_LIST_FILE
-    end
-
-    def last_modified_at
-      File.mtime LINKS_LIST_FILE
-    end
-
     def extract_links(content)
       Nokogiri::XML(content).css('url').inject({}) do |links, node|
         url = node.css('loc').first.text.split(HOST).last
@@ -119,16 +100,6 @@ module VeraNova
 
         links.merge! url => modified_at
       end
-    end
-
-    def log_failure_for(url, error)
-      msg = "Processing #{url}... Failed: #{error}\n"
-      @logger.error msg
-      print msg
-    end
-
-    def log_success_for(product)
-      print "Processing #{product.url}... Done\n"
     end
   end
 end
