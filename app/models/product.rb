@@ -5,7 +5,6 @@
 #  id            :integer          not null, primary key
 #  title         :string
 #  is_available  :boolean
-#  remote_id     :integer
 #  price         :integer
 #  compare_price :integer
 #  category_id   :integer
@@ -19,6 +18,7 @@
 #  images        :string           default([]), is an Array
 #  created_at    :datetime         not null
 #  updated_at    :datetime         not null
+#  remote_key    :string
 #
 # Indexes
 #
