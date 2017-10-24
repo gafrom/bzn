@@ -12,6 +12,8 @@
 class Supplier < ApplicationRecord
   has_many :products
 
+  validates :name, :host, presence: true, uniqueness: true
+
   def domain
     name.constantize
   end
