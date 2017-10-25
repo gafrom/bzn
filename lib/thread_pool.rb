@@ -15,7 +15,7 @@ class ThreadPool
         begin
           block[]
         rescue Exception => e
-          puts "Exception: #{e.message}\n#{e.backtrace.join("\n")}"
+          puts "Error: #{e.message}\n#{e.backtrace.join("\n")}"
         ensure
           @pool << 1
         end
