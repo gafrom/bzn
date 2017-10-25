@@ -4,6 +4,7 @@ require 'csv'
 module Gepur
   class Catalog < ::Catalog
     include Catalogue::WithSupplier
+    include Catalogue::WithTrackedProductUpdates
 
     PATH_TO_FILE = Rails.root.join('storage', 'gepur_catalog.csv')
     URI = URI('https://gepur.com/xml/gepur_catalog.csv')
@@ -38,7 +39,7 @@ module Gepur
     private
 
     def hide_removed_products
-      removed_from_catalog = Product.where(supplier: Gepur.supplier, is_available: true)
+      removed_from_catalog = Product.where(supplier: supplier, is_available: true)
                                     .where.not(id: @processed)
       removed_from_catalog.update_all is_available: false
 
@@ -74,29 +75,14 @@ module Gepur
       #   end
       when :products
         attrs = product_attributes_from data
-
-        product = Product.find_or_initialize_by remote_key: attrs[:remote_key]
-        product.assign_attributes attrs
-        was_new_record = product.new_record?
-        was_changed    = product.changed?
-        return @failures_count += 1 unless product.save
-
-        @processed << product.id
-
-        return @created_count += 1 if was_new_record
-        return @updated_count += 1 if was_changed
-        @skipped_count += 1
+        update_product attrs
       end
-    rescue NoMethodError
-      @failures_count += 1
     end
 
     def product_attributes_from(data)
       attrs = %i[remote_key is_available remote_category_id _ title url description
                  collection color sizes compare_price price images].zip(data).to_h
       attrs.delete :_
-      
-      attrs.merge! supplier: Supplier.find_by!
 
       categorizer = Gepur::Categorizer.new attrs.delete(:remote_category_id)
       attrs[:category_id]   = categorizer.category_id

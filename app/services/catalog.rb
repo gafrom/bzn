@@ -24,11 +24,12 @@ class Catalog
 
   def log_failure_for(url, error)
     msg = "Processing #{url}... Failed: #{error}\n"
+    @failures_count += 1
     @logger.error msg
-    print msg
+    puts msg
   end
 
   def log_success_for(product)
-    print "Processing #{product.url}... Done\n"
+    puts "Processing #{product.url}... Done\n"
   end
 end

@@ -24,7 +24,7 @@ module VeraNova
     def process_links
       CSV.foreach path_to_links_file do |link|
         url, modified_at = link
-        product = Product.find_or_initialize_by remote_key: url, supplier: VeraNova.supplier
+        product = Product.find_or_initialize_by remote_key: url, supplier: supplier
         next skip url if fresh? product, modified_at
 
         @pool.run { synchronize url, product }
@@ -46,7 +46,6 @@ module VeraNova
       @success_count += 1
     rescue NoMethodError, NotImplementedError => error
       log_failure_for product.url, error.message
-      @failures_count += 1
     end
 
     # in case a product's web page is not modified
@@ -72,7 +71,7 @@ module VeraNova
                            .map { |img| img.attr('src').split(HOST).second }
       attrs[:sizes] = page.css('#product .owq-name').map { |el| el.text }
       attrs[:is_available] = attrs[:price] > 0
-      attrs.merge compare_price: attrs[:price] * 2
+      attrs[:compare_price] = attrs[:price] * 2
       # no color available at the web site
       # no collection available at the web site
       attrs
