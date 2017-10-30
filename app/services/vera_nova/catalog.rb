@@ -6,7 +6,6 @@ module VeraNova
     include Catalogue::WithSupplier
     include Catalogue::WithLinksFile
 
-    HOST = 'veranova.ru'
     LINKS_LIST_URL = URI 'http://veranova.ru/sitemap-product.xml'
 
     def initialize(*args)
@@ -37,28 +36,6 @@ module VeraNova
            "Not modified: #{@skipped_count}"
     end
 
-    def synchronize(url, product)
-      attrs = parse URI("http://#{HOST}#{url}")
-      all_attrs = attrs.merge url: url
-
-      product.update all_attrs
-      log_success_for product
-      @success_count += 1
-    rescue NoMethodError, NotImplementedError => error
-      log_failure_for product.url, error.message
-    end
-
-    # in case a product's web page is not modified
-    def skip(url)
-      @skipped_count += 1
-      puts "Processing #{url}... Skipped"
-    end
-
-    def parse(uri)
-      page = Nokogiri::HTML open(uri)
-      product_attributes_from page
-    end
-
     def product_attributes_from(page)
       attrs = {}
       attrs[:title] = page.css('[itemprop="name"]').first.text
@@ -68,7 +45,7 @@ module VeraNova
       attrs[:description] = desc.blank? ? '' : "<p class='fabric'>Состав: #{desc}</p>"
       attrs[:description] << page.css('#tab-description').first.to_html.gsub("\n", ' ').squeeze(' ')
       attrs[:images] = page.css('#one-image>.item>img')
-                           .map { |img| img.attr('src').split(HOST).second }
+                           .map { |img| img.attr('src').split(supplier.host).second }
       attrs[:sizes] = page.css('#product .owq-name').map { |el| el.text }
       attrs[:is_available] = attrs[:price] > 0
       attrs[:compare_price] = attrs[:price] * 2
@@ -93,7 +70,7 @@ module VeraNova
 
     def extract_links(content)
       Nokogiri::XML(content).css('url').inject({}) do |links, node|
-        url = node.css('loc').first.text.split(HOST).last
+        url = node.css('loc').first.text.split(supplier.host).last
         modified_at = node.css('lastmod').first.text.to_date
         log_failure_for url, '[SITEMAP PARSING]' unless url && modified_at
 
