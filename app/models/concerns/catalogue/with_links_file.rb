@@ -4,8 +4,8 @@
 module Catalogue::WithLinksFile
   private
 
-  def ensure_links_are_fresh
-    update_links if empty? || (last_modified_at + self.class::STALE_IN).past?
+  def obsolete?
+    empty? || (last_modified_at + self.class::STALE_IN).past?
   end
 
   def empty?

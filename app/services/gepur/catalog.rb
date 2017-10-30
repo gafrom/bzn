@@ -6,16 +6,15 @@ module Gepur
     include Catalogue::WithSupplier
     include Catalogue::WithTrackedProductUpdates
 
-    PATH_TO_FILE = Rails.root.join('storage', 'gepur_catalog.csv')
-    URI = URI('https://gepur.com/xml/gepur_catalog.csv')
+    API_URL = '/xml/gepur_catalog.csv'.freeze
 
     def sync
-      ensure_local_copy_is_fresh
+      update if obsolete?
       # Gepur catalog csv contains two concatenated tables:
       # - First goes Categories with headers `id, category, parentId`
       # - Then Products with headers `id_product, avaliable, ...`
       reading = nil
-      CSV.foreach PATH_TO_FILE, col_sep: ';' do |row|
+      CSV.foreach path_to_links_file, col_sep: ';' do |row|
         if row[1] == 'category'
           puts "Reading table `categories` with columns: #{row}"
           next reading = :categories
@@ -46,21 +45,9 @@ module Gepur
       @hidden_count = removed_from_catalog.count
     end
 
-    def ensure_local_copy_is_fresh
-      update if empty? || (last_modified_at + STALE_IN).past?
-    end
-
-    def empty?
-      !File.exists? PATH_TO_FILE
-    end
-
-    def last_modified_at
-      File.mtime PATH_TO_FILE
-    end
-
     def update
       puts 'Updating catalog file...'
-      IO.copy_stream open(URI), PATH_TO_FILE
+      IO.copy_stream open(URI(API_URL)), path_to_links_file
     end
 
     def store(data, type)

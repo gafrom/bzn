@@ -8,7 +8,7 @@ module AngelaRicci
     include Catalogue::WithTrackedProductUpdates
 
     def sync
-      ensure_links_are_fresh
+      update_links if obsolete?
       process_links
     end
 
