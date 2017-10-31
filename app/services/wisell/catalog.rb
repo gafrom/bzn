@@ -25,6 +25,7 @@ module Wisell
 
     def parse
       file = File.open(path_to_links_file).read
+      categories = {}
       Nokogiri::XML(file).css('offer').each do |offer|
         attrs = product_attributes_from offer
         update_product attrs
@@ -42,21 +43,26 @@ module Wisell
       attrs = {}
       attrs[:remote_key] = offer.attr('id')
       attrs[:title] = offer.attr('name')
-      # attrs[:category] = Categorizer.new.from_title attrs[:title]
-      # attrs[:price] = offer.css('#formated_price').first.attr('price').to_i
-      # desc = offer.css('[itemprop="model"]').first.text
-      # attrs[:description] = desc.blank? ? '' : "<p class='fabric'>Состав: #{desc}</p>"
-      # attrs[:description] << offer.css('#tab-description').first.to_html.gsub("\n", ' ').squeeze(' ')
-      # attrs[:images] = offer.css('#one-image>.item>img')
-      #                      .map { |img| img.attr('src').split(supplier.host).second }
-      # attrs[:sizes] = offer.css('#product .owq-name').map { |el| el.text }
+      attrs[:category_id] = Categorizer.new(offer.css('categoryId').first.text.to_i).category_id
+      attrs[:price] = offer.css('price').first.text.to_i
+      desc = "<p>#{offer.css('description').first.text}</p>"
+      temp = offer.css('country_of_origin').first
+      desc << "<p>Страна производства #{temp.text}</p>" if temp
+      temp = offer.css('param[name="Материал"]').first
+      desc << "<p>Материал #{temp.text}</p>" if temp
+      temp = offer.css('param[name="Ткань"]').first
+      desc << "<p>Ткань #{temp.text}</p>" if temp
+      temp = offer.css('param[name="Длина размера"]').first
+      desc << "<p>Длина размера #{temp.text}</p>" if temp
+      attrs[:description] = "<div>#{desc}</div>"
+      attrs[:images] = offer.css('picture')
+                            .map { |pic| pic.text.split(supplier.host).second }
+      attrs[:sizes] = offer.css('param[name="Размер"]').first.text.split(', ')
       attrs[:is_available] = offer.attr('available').to_s == 'true'
-      # attrs[:compare_price] = attrs[:price] * 2
-      byebug
-      # no collection available at the web site
+      attrs[:compare_price] = attrs[:price] * 2
+      attrs[:color] = offer.css('param[name="Цвет"]').first.text
+
       attrs
     end
-
-
   end
 end
