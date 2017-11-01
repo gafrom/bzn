@@ -4,6 +4,13 @@
 module Catalogue::WithTrackedProductUpdates
   private
 
+  def synchronize_with(offer)
+    attrs = product_attributes_from offer
+    update_product attrs
+  rescue NoMethodError, KeyError, NotImplementedError => ex
+    log_failure_for url_from(offer), ex.message
+  end
+
   def synchronize(url, product)
     attrs = parse(URI("#{supplier.host}#{url}")).merge! url: url
     update_product attrs, product
@@ -14,12 +21,6 @@ module Catalogue::WithTrackedProductUpdates
   def fresh?(product, modified_at_as_string)
     updated_at = product.updated_at
     updated_at && updated_at > modified_at_as_string.to_date
-  end
-
-  # in case a product's web page is not modified
-  def skip(url)
-    @skipped_count += 1
-    puts "Processing #{url}... Skipped"
   end
 
   def parse(uri)
@@ -39,12 +40,26 @@ module Catalogue::WithTrackedProductUpdates
     return log_failure_for attrs[:title], product.errors.messages unless product.save
 
     @processed << product.id
-    log_success_for product
 
-    return @created_count += 1 if was_new_record
-    return @updated_count += 1 if was_changed
-    @skipped_count += 1
+    return increment_created product if was_new_record
+    return increment_updated product if was_changed
+    skip product.url
   rescue NoMethodError, NotImplementedError => ex
     log_failure_for attrs[:title], ex.message
+  end
+
+  def increment_created(product)
+    log_success_for product.url, :created
+    @created_count += 1
+  end
+
+  def increment_updated(product)
+    log_success_for product.url, :updated
+    @updated_count += 1
+  end
+
+  def skip(url)
+    log_success_for url, :skipped
+    @skipped_count += 1
   end
 end
