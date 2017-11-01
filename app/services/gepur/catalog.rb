@@ -71,7 +71,7 @@ module Gepur
                  collection color sizes compare_price price images].zip(data).to_h
       attrs.delete :_
 
-      categorizer = Gepur::Categorizer.new attrs.delete(:remote_category_id)
+      categorizer = Categorizer.new attrs.delete(:remote_category_id)
       attrs[:category_id]   = categorizer.category_id
       attrs[:is_available]  = attrs[:is_available].downcase == 'true'
       attrs[:url]           = attrs[:url][/https?:\/\/gepur\.com\/product\/([^\s\n\t]+)/, 1]

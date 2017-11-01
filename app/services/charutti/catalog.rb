@@ -23,7 +23,6 @@ module Charutti
         next skip url if fresh? product, modified_at
 
         @pool.run { synchronize url, product }
-        # synchronize url, product
       end
 
       @pool.await_completion
