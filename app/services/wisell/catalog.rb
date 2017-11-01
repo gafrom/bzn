@@ -12,7 +12,9 @@ module Wisell
 
     def sync
       update if obsolete?
-      parse
+      sync_products_with_file
+
+      @pool.await_completion
 
       puts "Created: #{@created_count}\n" \
            "Updated: #{@updated_count}\n" \
@@ -23,12 +25,12 @@ module Wisell
 
     private
 
-    def parse
-      file = File.open(path_to_links_file).read
-      categories = {}
-      Nokogiri::XML(file).css('offer').each do |offer|
-        attrs = product_attributes_from offer
-        update_product attrs
+    def sync_products_with_file
+      content = File.open(path_to_links_file).read
+
+      Supplier # workaround to ActiveRecord bug `load_missing_constant'
+      Nokogiri::XML(content).css('offer').each do |offer|
+        @pool.run { synchronize_with offer }
       end
     end
 
@@ -39,28 +41,34 @@ module Wisell
       puts 'Done'
     end
 
+    def url_from(offer)
+      offer.css('url').first.text.split(supplier_host).second
+    end
+
     def product_attributes_from(offer)
       attrs = {}
       attrs[:remote_key] = offer.attr('id')
       attrs[:title] = offer.attr('name')
-      attrs[:category_id] = Categorizer.new(offer.css('categoryId').first.text.to_i).category_id
+      categorizer = Categorizer.new offer.css('categoryId').first.text.to_i, attrs[:title]
+      attrs[:category_id] = categorizer.category_id
       attrs[:price] = offer.css('price').first.text.to_i
+
       desc = "<p>#{offer.css('description').first.text}</p>"
       temp = offer.css('country_of_origin').first
       desc << "<p>Страна производства #{temp.text}</p>" if temp
-      temp = offer.css('param[name="Материал"]').first
-      desc << "<p>Материал #{temp.text}</p>" if temp
-      temp = offer.css('param[name="Ткань"]').first
-      desc << "<p>Ткань #{temp.text}</p>" if temp
-      temp = offer.css('param[name="Длина размера"]').first
-      desc << "<p>Длина размера #{temp.text}</p>" if temp
+      ['Материал', 'Ткань', 'Длина размера'].each do |param|
+        temp = offer.css("param[name='#{param}']").first
+        desc << "<p>#{param} <span>#{temp.text}</span></p>" if temp
+      end
+
       attrs[:description] = "<div>#{desc}</div>"
       attrs[:images] = offer.css('picture')
-                            .map { |pic| pic.text.split(supplier.host).second }
+                            .map { |pic| pic.text.split(supplier_host).second }
       attrs[:sizes] = offer.css('param[name="Размер"]').first.text.split(', ')
       attrs[:is_available] = offer.attr('available').to_s == 'true'
       attrs[:compare_price] = attrs[:price] * 2
-      attrs[:color] = offer.css('param[name="Цвет"]').first.text
+      attrs[:color] = offer.css('param[name="Цвет"]').first&.text
+      attrs[:url] = url_from offer
 
       attrs
     end
