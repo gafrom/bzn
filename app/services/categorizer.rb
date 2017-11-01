@@ -1,6 +1,6 @@
 class Categorizer
   SCHEDULE = {
-    '(куртка|пуховик|бомбер|тренч|пальто|накидк|плащ|шуба|ветровка|парка|жилет|кардиган|пиджак|болеро|портупея|жакет)' => 2, # Верхняя одежда
+    '(куртка|пуховик|бомбер|тренч|пальто|накидк|плащ|шуба|ветровка|парка|жилет|пиджак|болеро|портупея|жакет)' => 2, # Верхняя одежда
     '(платье|сарафан|платьице)' => 3, # Платья
     '(костюм.+спортивн|спортивн.+костюм)' => 9, # Спортивные костюмы
     '(костюм|комплект)' => 4, # Костюмы и комплекты
@@ -14,8 +14,12 @@ class Categorizer
   }
 
   def from_title(title)
+    ::Category.find id_from_title(title)
+  end
+
+  def id_from_title(title)
     SCHEDULE.each do |pattern, id|
-      return ::Category.find id if /#{pattern}/i =~ title
+      return id if /#{pattern}/i =~ title
     end
 
     raise NotImplementedError, "[PARSING ERROR] cannot infer category from title: '#{title}'"
