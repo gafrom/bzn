@@ -10,4 +10,8 @@ module Catalogue::WithSupplier
       @supplier = Supplier.create name: supplier_slug, host: @supplier_host
     end
   end
+
+  def supplier_host
+    @supplier_host_only ||= supplier.host.split('//').second
+  end
 end
