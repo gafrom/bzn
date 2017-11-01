@@ -29,7 +29,7 @@ class Catalog
     puts msg
   end
 
-  def log_success_for(product)
-    puts "Processing #{product.url}... Done\n"
+  def log_success_for(url, action = :done)
+    puts "Processing #{url}... #{action.to_s.capitalize}\n"
   end
 end
