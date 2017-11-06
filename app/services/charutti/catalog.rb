@@ -26,6 +26,7 @@ module Charutti
       end
 
       @pool.await_completion
+      hide_removed_products
 
       puts "Created: #{@created_count}\n" \
            "Updated: #{@updated_count}\n" \

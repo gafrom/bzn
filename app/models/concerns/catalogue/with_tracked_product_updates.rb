@@ -4,8 +4,8 @@
 module Catalogue::WithTrackedProductUpdates
   private
 
-  def synchronize_with(offer)
-    attrs = product_attributes_from offer
+  def synchronize_with(offer, type = nil)
+    attrs = product_attributes_from offer, type
     update_product attrs
   rescue NoMethodError, KeyError, NotImplementedError => ex
     log_failure_for url_from(offer), ex.message
@@ -46,6 +46,14 @@ module Catalogue::WithTrackedProductUpdates
     skip product.url
   rescue NoMethodError, NotImplementedError => ex
     log_failure_for attrs[:title], ex.message
+  end
+
+  def hide_removed_products
+    removed_from_catalog = Product.where(supplier: supplier, is_available: true)
+                                  .where.not(id: @processed)
+    removed_from_catalog.update_all is_available: false
+
+    @hidden_count = removed_from_catalog.count
   end
 
   def increment_created(product)

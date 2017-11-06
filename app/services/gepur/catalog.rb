@@ -4,6 +4,7 @@ require 'csv'
 module Gepur
   class Catalog < ::Catalog
     include Catalogue::WithSupplier
+    include Catalogue::WithLinksFile
     include Catalogue::WithTrackedProductUpdates
 
     API_URL = '/xml/gepur_catalog.csv'.freeze
@@ -37,17 +38,9 @@ module Gepur
 
     private
 
-    def hide_removed_products
-      removed_from_catalog = Product.where(supplier: supplier, is_available: true)
-                                    .where.not(id: @processed)
-      removed_from_catalog.update_all is_available: false
-
-      @hidden_count = removed_from_catalog.count
-    end
-
     def update
       puts 'Updating catalog file...'
-      IO.copy_stream open(URI(API_URL)), path_to_links_file
+      IO.copy_stream open(URI("#{supplier.host}#{API_URL}")), path_to_links_file
     end
 
     def store(data, type)
@@ -74,13 +67,18 @@ module Gepur
       categorizer = Categorizer.new attrs.delete(:remote_category_id)
       attrs[:category_id]   = categorizer.category_id
       attrs[:is_available]  = attrs[:is_available].downcase == 'true'
-      attrs[:url]           = attrs[:url][/https?:\/\/gepur\.com\/product\/([^\s\n\t]+)/, 1]
+      attrs[:url]           = attrs[:url][/https?:\/\/gepur\.com(\/product\/[^\s\n\t]+)/, 1]
       attrs[:sizes]         = attrs[:sizes].downcase.split(', ').compact
       attrs[:price]         = attrs[:price][/RUB:(\d+)/, 1]
       attrs[:compare_price] = attrs[:compare_price][/RUB:(\d+)/, 1]
       attrs[:images]        = attrs[:images].gsub(/\/[^\/]+\/([^\/]+(,|\z))/, '/origins/\1')
                                             .gsub(/https?:\/\/gepur\.com/, '')
                                             .split(',').compact
+      attrs[:color_ids] = @colorizer.ids attrs[:color] if attrs[:color].present?
+      description = attrs[:description].split(/(?<=[а-я])(?=[А-Я])/).map do |desc|
+        "<p>#{desc}</p>"
+      end.join
+      attrs[:description] = "<div>#{description}</div>"
 
       attrs
     end

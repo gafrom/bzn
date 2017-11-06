@@ -5,6 +5,7 @@ module VeraNova
   class Catalog < ::Catalog
     include Catalogue::WithSupplier
     include Catalogue::WithLinksFile
+    include Catalogue::WithTrackedProductUpdates
 
     LINKS_LIST_URL = URI 'http://veranova.ru/sitemap-product.xml'
 
@@ -30,10 +31,13 @@ module VeraNova
       end
 
       @pool.await_completion
+      hide_removed_products
 
-      puts "Successes: #{@success_count}\n" \
-           "Failures: #{@failures_count}\n" \
-           "Not modified: #{@skipped_count}"
+      puts "Created: #{@created_count}\n" \
+           "Updated: #{@updated_count}\n" \
+           "Skipped: #{@skipped_count}\n" \
+           "Hidden: #{@hidden_count}\n" \
+           "Failures: #{@failures_count}"
     end
 
     def product_attributes_from(page)

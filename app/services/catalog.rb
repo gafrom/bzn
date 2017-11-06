@@ -18,6 +18,7 @@ class Catalog
 
     @pool = ThreadPool.new THREADS_NUM
     @logger = Logger.new LOG_FILE
+    @colorizer = Colorizer.new
   end
 
   private

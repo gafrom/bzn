@@ -36,6 +36,9 @@ class Product < ApplicationRecord
 
   after_create :set_slug
 
+  has_many :colorations, dependent: :destroy
+  has_many :colors, through: :colorations
+
   belongs_to :category
   belongs_to :supplier
 
@@ -65,6 +68,10 @@ class Product < ApplicationRecord
     images.map { |image_path| "#{PROXY_HOST}/#{supplier.slug}#{image_path}" }
   end
 
+  def joined_colors
+    colors.map(&:title).join '##'
+  end
+
   private
 
   def csv_rows
@@ -91,7 +98,7 @@ class Product < ApplicationRecord
       slug,
       supplier.name,
       size,
-      color,
+      joined_colors,
       collection,
       full_url
     ]
