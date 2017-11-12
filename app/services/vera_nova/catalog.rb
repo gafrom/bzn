@@ -43,7 +43,7 @@ module VeraNova
     def product_attributes_from(page)
       attrs = {}
       attrs[:title] = page.css('[itemprop="name"]').first.text
-      attrs[:category] = Categorizer.new.from_title attrs[:title]
+      attrs[:category_id] = Categorizer.new(title: attrs[:title]).id_from_title
       attrs[:price] = page.css('#formated_price').first.attr('price').to_i
       desc = page.css('[itemprop="model"]').first.text
       attrs[:description] = desc.blank? ? '' : "<p class='fabric'>Состав: #{desc}</p>"

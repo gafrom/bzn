@@ -1,32 +1,19 @@
 class Colorizer
-  ADJ_SUF = /(ый|ий|ой|ая|яя|ое|ее)\Z/
-  OE_SUF  = /[ое]\Z/
+  ADJ_SUF = /(ый|ий|ой|ая|яя|ое|ее|ом|ем|ые|ие|ым)\Z/
+  OE_SUF = /[ое]\Z/
   SPACE = ' '.freeze
-  SPL = /(морская\sволна)|\s/
-
-#    slugs << 'print' if /(print|melanzh|ornament|uzor|kletka|cvety|goroh|vyshivka|ljurex|poloska|multiko|stegann|cvetnoj|raznocvet|applikaciya)/ =~ color_slug
-#     slugs << 'rozovyj' if /(rozov|lilov|bronzov|roza|pjusovyj|fuxi|koral|korllov|barbi|losos)/ =~ color_slug
-#     slugs << 'sinij' if /(sin|jelektrik|vasilkovyj|chernichnyj|minij|grifeln|cinij|ultramarin|sapfir)/ =~ color_slug
-#     slugs << 'fioletovyj' if /(fioletov|baklazhanovyj|slivov|fiolet|purpurn)/ =~ color_slug
-#     slugs << 'sirenevyj' if /(sirenev|lavand|gliciniya)/ =~ color_slug
-#     slugs << 'goluboj' if /(golub|bijuzovyj|morskaya-volna|birjuz|lazurnyj|dzhins|morskoj-volny|goloboj)/ =~ color_slug
-#     slugs << 'korichnevyj' if /(korichn|kofejnyj|kakao|shokolad|kapuchin|orehov|kofe|kokao)/ =~ color_slug
-#     slugs << 'zelenyj' if /(zelen|bolotn|fistashkov|olivk|izurud|izumrud|haki|nefrit|hakki|butylka|malahit)/ =~ color_slug
-#     slugs << 'myatnyj' if /(myatn|salotov|lajm|mentol|salat|myata|mytnyj)/ =~ color_slug
-#     slugs << 'bezhevyj' if /(bezh|kremov|pudr|slonov|abrikos|frezov|shampan|vanil)/ =~ color_slug
-#     slugs << 'molochnyj' if /(molochn|zhemchuzhn|moloko)/ =~ color_slug
-#     slugs << 'seryj' if /(ser|tabachn|grafit|stalnoj|metal|grifeln)/ =~ color_slug
-#     slugs << 'chernyj' if /(chern|chjornyj)/ =~ color_slug
-#     slugs << 'krasnyj' if /(krasn|vinnyj|yagodn|morkovn|vishnev|malinov|marsala|terrakot|granatov|bordov|kirpich|brusnichn|alyj|bordo|marsalov|malina)/ =~ color_slug
-#     slugs << 'zheltyj' if /(zhelt|limonn|gorchic|pesochn|zolot|gorichichnyj|gorichica|zhjoltyj|mednyj|zhelyj)/ =~ color_slug
-#     slugs << 'belyj' if /bel/ =~ color_slug
-#     slugs << 'oranzhevyj' if /(oranzh|persik|abrikosov)/ =~ color_slug
+  SPL = /(морская\sволна|слоновая\sкость|крем[\-\s]брюле|в\sполоску|
+          кофе\sс\sмолоком|пыльная\sроза)|\s/x
+  DISREGARD = %w[т темн светл мокр ярк бледн спел тепл бархат на с c абстрактн
+                 глубок классическ клеверн мелк нежн отделка приглушен тонк тропическ
+                 фойл цвет\Z широк &quot]
 
   SCHEDULE = {
     'мультиколлор'    =>  [3], # Мультиколор
     'мультиколор'     =>  [3], # Мультиколор
     'разноцветн'      =>  [3], # Мультиколор
     'черн'            =>  [4], # Черный
+    'принт'           =>  [5], # Принт (рисунок)
     'бел'             =>  [6], # Белый
     'сер'             =>  [7], # Серый
     'бирюзов'         =>  [8], # Бирюзовый
@@ -56,32 +43,197 @@ class Colorizer
     'молочн'          => [6, 12],
     'терракот'        => [11, 20],
     'горчичн'         => [13, 20],
-    'малинов'         => [10, 11]
+    'малинов'         => [10, 11],
+    'песок'           => [7, 12],
+    'слоновая кость'  => [6, 12],
+    'кофе с молоком'  => [12, 14],
+    'крем брюле'      => [12, 13, 14],
+    'в полоску'       => [5],
+    'абрикосов'    => [12, 13, 20],
+    'ал'           => [11],
+    'ангора'       => [7, 12],
+    'апельсинов'   => [20],
+    'бабочки'      => [5],
+    'баклажанов'   => [17],
+    'бантики'      => [5],
+    'бирюза'       => [8],
+    'бордо'        => [11, 14],
+    'брусничн'     => [11],
+    'ванильн'      => [6, 12],
+    'васильков'    => [16],
+    'велосипеды'   => [5],
+    'вензель'      => [5],
+    'винн'         => [11, 14],
+    'вишнев'       => [11, 17],
+    'вишня'        => [11, 17],
+    'геометрия'    => [5],
+    'гербы'        => [5],
+    'гжель'        => [5],
+    'глициния'     => [10, 17],
+    'горох'        => [5],
+    'горохи'       => [5],
+    'горошек'      => [5],
+    'графит'       => [7],
+    'графитов'     => [7],
+    'джинс'        => [15, 16],
+    'джинсов'      => [15, 16],
+    'джинсово'     => [15, 16],
+    'дымка'        => [7],
+    'дымчато'      => [7],
+    'ежевика'      => [4, 17],
+    'ежевичн'      => [4, 17],
+    'жемчуг'       => [6, 12, 19],
+    'жемчужн'      => [6, 12, 19],
+    'журавли'      => [5],
+    'зайцы'        => [5],
+    'звезды'       => [5],
+    'зебра'        => [4, 6],
+    'зелень'       => [9],
+    'зигзаги'      => [5],
+    'индиго'       => [16, 17],
+    'ирисы'        => [16, 17],
+    'какао'        => [14],
+    'капучино'     => [12, 14],
+    'карамельн'    => [12, 13],
+    'кирпич'       => [11],
+    'кирпичн'      => [11],
+    'кислотн'      => [9, 13],
+    'клевер'       => [5],
+    'клетка'       => [5],
+    'ключи'        => [5],
+    'кокосов'      => [6, 12],
+    'колокольчики' => [5],
+    'короны'       => [5],
+    'кофе'         => [14],
+    'кофейн'       => [14],
+    'кофейно'      => [14],
+    'кошки'        => [5],
+    'красным'      => [11],
+    'кремов'       => [6, 12],
+    'кэмел'        => [12, 14],
+    'лавандов'     => [16, 17],
+    'лагуна'       => [16],
+    'лазурн'       => [8, 15, 16],
+    'лазурно'      => [8],
+    'лапки'        => [5],
+    'леопард'      => [4, 13],
+    'лепестков'    => [12],
+    'лепесток'     => [5],
+    'лилов'        => [10, 17],
+    'листья'       => [5],
+    'лососев'      => [11],
+    'лошади'       => [5],
+    'люди'         => [5],
+    'мак'          => [5],
+    'малахит'      => [8, 9],
+    'малахитов'    => [8, 9],
+    'маренго'      => [7],
+    'марсала'      => [11, 14, 10],
+    'меланж'       => [7],
+    'ментолов'     => [8],
+    'микки'        => [5],
+    'мокко'        => [14],
+    'монеты'       => [5],
+    'морковн'      => [11, 20],
+    'мята'         => [8, 9],
+    'небо'         => [6, 15],
+    'облако'       => [5],
+    'огурцы'       => [5],
+    'одуванчики'   => [5],
+    'оливков'      => [9],
+    'орех'         => [14],
+    'орехов'       => [14],
+    'орнамент'     => [5],
+    'охра'         => [13, 20],
+    'очки'         => [5],
+    'персик'       => [12, 13, 20],
+    'перья'        => [5],
+    'песочн'       => [12, 13],
+    'пион'         => [5],
+    'пламенн'      => [11],
+    'полоска'      => [5],
+    'полынь'       => [8, 9],
+    'птицы'        => [5],
+    'пудра'        => [10, 12],
+    'пудров'       => [10, 12],
+    'пыльн'        => [7],
+    'пыльно'       => [7],
+    'рисунок'      => [5],
+    'розы'         => [5],
+    'ромашки'      => [5],
+    'ромбы'        => [5],
+    'рыж'          => [11, 20],
+    'сакура'       => [5],
+    'свекольн'     => [17],
+    'сердца'       => [5],
+    'сливов'       => [10, 17],
+    'слоны'        => [5],
+    'совы'         => [5],
+    'стальн'       => [7, 19],
+    'стрекозы'     => [5],
+    'тауп'         => [12, 14],
+    'терракотов'   => [11, 14, 20],
+    'точки'        => [5],
+    'травян'       => [9],
+    'туфли'        => [5],
+    'тюльпаны'     => [5],
+    'узоры'        => [5],
+    'ультрамарин'  => [16],
+    'фиалков'      => [10, 17],
+    'фисташков'    => [9],
+    'фламинго'     => [11],
+    'фотопечать'   => [5],
+    'хаки'         => [9],
+    'хвойн'        => [9],
+    'цветн'        => [3],
+    'цветочн'      => [3],
+    'цветы'        => [5],
+    'цепи'         => [5],
+    'черничн'      => [16, 17],
+    'шампанск'     => [12],
+    'шашечки'      => [5],
+    'шоколадн'     => [14],
+    'штрихи'       => [5],
+    'электрик'     => [16],
+    'ягодн'        => [10, 11, 17],
+    'якоря'        => [5],
+    'круги'        => [5],
+    'пыльная роза' => [12]
   }
+
+  def initialize
+    @disregarding_pattern = /\A#{DISREGARD.join('|')}/
+  end
 
   def ids(color_string)
     colors = split prepared color_string
+
     colors.inject([]) do |result, color|
+      next result if disregard? color
       result += fetch stemmed color
-    end.uniq
+    end.compact.uniq
   end
 
   private
 
+  def disregard?(color)
+    color =~ @disregarding_pattern
+  end
+
   def stemmed(string)
-    string.sub(ADJ_SUF, '').sub(OE_SUF, '')
+    string.sub(ADJ_SUF, '')
   end
 
   def prepared(string)
-    string.downcase.gsub('ё', 'е')
+    string.downcase.gsub('ё', 'е').gsub(' ', ' ')
   end
 
   def split(string)
-    string.gsub(/[\,\-]/i, SPACE).squeeze(SPACE).strip.split(SPL).reject &:empty?
+    string.gsub(/([\,\-\;\.])/, SPACE).squeeze(SPACE).strip.split(SPL).reject &:empty?
   end
 
   def fetch(stem)
-    SCHEDULE.fetch stem
+    SCHEDULE[stem] || SCHEDULE.fetch(stem.sub OE_SUF, '')
   rescue KeyError
     msg = "[PARSING ERROR] Cannot infer color from stem '#{stem}'"
     raise NotImplementedError, msg

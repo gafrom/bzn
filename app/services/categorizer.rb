@@ -1,5 +1,5 @@
 class Categorizer
-  SCHEDULE = {
+  TITLES_SCHEDULE = {
     '(куртка|пуховик|бомбер|тренч|пальто|накидк|плащ|шуба|ветровка|парка|жилет|фр[еэ]нч|пиджак|болеро|портупея|жакет)' => 2, # Верхняя одежда
     '(платье|сарафан|платьице)' => 3, # Платья
     '(костюм.+спортивн|спортивн.+костюм)' => 9, # Спортивные костюмы
@@ -14,16 +14,40 @@ class Categorizer
     '(бижутерия|нить|бусы|браслет|серьги|колье|подвес|кольц|часы|очки|ремень|кушак|брошь|брелоки)' => 15 # Аксессуары
   }
 
-  def from_title(title)
-    ::Category.find id_from_title(title)
+  def initialize(remote_id: nil, title: nil)
+    @remote_id = remote_id
+    @title = title
   end
 
-  def id_from_title(title)
-    SCHEDULE.each do |pattern, id|
-      return id if /#{pattern}/i =~ title
+  def category_id
+    @category_id ||= begin
+      fetched = case @remote_id
+                when Array
+                  @remote_id.inject do |id, remote_id|
+                    id = self.class::SCHEDULE[remote_id.to_i]
+                    break id if id
+                  end
+                else
+                  self.class::SCHEDULE[remote_id.to_i]
+                end
+      fetched || id_from_title
+    end
+  end
+
+  def category
+    @category ||= Category.find category_id
+  end
+
+  def from_title
+    @category ||= Category.find id_from_title
+  end
+
+  def id_from_title
+    TITLES_SCHEDULE.each do |pattern, id|
+      return id if /#{pattern}/i =~ @title
     end
 
-    raise NotImplementedError, "[PARSING ERROR] cannot infer category from title: '#{title}'"
+    raise NotImplementedError, "[PARSING ERROR] cannot infer category from title: '#{@title}'"
   end
 end
 

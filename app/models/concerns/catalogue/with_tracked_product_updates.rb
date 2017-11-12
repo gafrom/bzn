@@ -4,11 +4,16 @@
 module Catalogue::WithTrackedProductUpdates
   private
 
-  def synchronize_with(offer, type = nil)
-    attrs = product_attributes_from offer, type
+  def synchronize_with(offer, options = nil)
+    attrs = product_attributes_from offer
+    attrs.merge! options if options
     update_product attrs
   rescue NoMethodError, KeyError, NotImplementedError => ex
     log_failure_for url_from(offer), ex.message
+  end
+
+  def url_from(offer)
+    offer.css('url').first.text.split(supplier_host).last
   end
 
   def synchronize(url, product)
@@ -24,7 +29,9 @@ module Catalogue::WithTrackedProductUpdates
   end
 
   def parse(uri)
-    page = Nokogiri::HTML open(uri)
+    content = open(uri, headers).read
+    page = Nokogiri::HTML content
+
     product_attributes_from page
   end
 
@@ -67,7 +74,7 @@ module Catalogue::WithTrackedProductUpdates
   end
 
   def skip(url)
-    log_success_for url, :skipped
+    # log_success_for url, :skipped
     @skipped_count += 1
   end
 end

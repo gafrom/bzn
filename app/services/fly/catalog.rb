@@ -1,24 +1,25 @@
 require 'open-uri'
 require 'csv'
 
-module Wisell
+module Fly
   class Catalog < ::Catalog
     include Catalogue::WithSupplier
     include Catalogue::WithLinksFile
     include Catalogue::WithCatalogFile
     include Catalogue::WithTrackedProductUpdates
 
-    CATALOG_URL = {
-      clothes: '/bitrix/catalog_export/yandex_wisell_without_models_opt.php',
-      accessories: '/bitrix/catalog_export/yandex_wisell_bijou_opt.php'
-    }.freeze
+    CATALOG_URL = '/bitrix/catalog_export/yandex_sliza.php'.freeze
 
     def sync
       update if obsolete?
 
-      catalog_contents do |content|
-        Nokogiri::XML(content).css('offer').each do |offer|
-          @pool.run { synchronize_with offer }
+      grouped_offers(Nokogiri::XML(catalog_contents).css('offer')).each do |url, offers|
+        @pool.run do
+          sizes = offers.map { |offer| size_from offer }.compact.uniq
+          synchronize_with offers.first, remote_key: url,
+                                         url: url,
+                                         sizes: sizes,
+                                         is_available: sizes.any?
         end
       end
 
@@ -34,40 +35,50 @@ module Wisell
 
     private
 
+    def grouped_offers(offers)
+      result = {}
+      offers.each do |offer|
+        url = url_from offer
+        next result[url] << offer if result[url]
+        result[url] = [offer]
+      end
+      result
+    end
+
+    def url_from(offer)
+      offer.css('url').first.text.split(supplier_host).last[/\/production\/\d+\//]
+    end
+
+    def size_from(offer)
+      return unless offer.attr('available').to_s == 'true'
+      size_node = offer.css('param[name="Размер"]').first
+      return 'unified' unless size_node
+      size_node.text
+    end
+
     def product_attributes_from(offer)
       attrs = {}
-      attrs[:remote_key] = offer.attr('id')
-      attrs[:title] = offer.attr('name')
-      
-      categorizer = Categorizer.new remote_id: offer.css('categoryId').first&.text,
-                                    title: attrs[:title]
+      attrs[:title] = offer.css('name').first.text.gsub(/\s\(\d+\)/, '')
+
+      categorizer = Categorizer.new title: attrs[:title],
+                                    remote_id: offer.css('categoryId').map(&:text)
       attrs[:category_id] = categorizer.category_id
       attrs[:price] = offer.css('price').first.text.to_i
 
       desc = "<p>#{offer.css('description').first.text}</p>"
       temp = offer.css('country_of_origin').first
       desc << "<p>Страна производства #{temp.text}</p>" if temp
-      ['Материал', 'Ткань', 'Длина размера'].each do |param|
+      ['Состав', 'Ткань', 'Длина размера', 'Производитель'].each do |param|
         temp = offer.css("param[name='#{param}']").first
         desc << "<p>#{param} <span>#{temp.text}</span></p>" if temp
       end
-
       attrs[:description] = "<div>#{desc}</div>"
+
       attrs[:images] = offer.css('picture')
                             .map { |pic| pic.text.split(supplier_host).second }
-
-      size_node = offer.css('param[name="Размер"]').first
-      if size_node
-        attrs[:sizes] = size_node.text.split(', ')
-      elsif attrs[:category_id] == 13
-        attrs[:sizes] = ['unified']
-      end
-
-      attrs[:is_available] = offer.attr('available').to_s == 'true'
       attrs[:compare_price] = attrs[:price] * 2
       attrs[:color] = offer.css('param[name="Цвет"]').first&.text
       attrs[:color_ids] = @colorizer.ids attrs[:color] if attrs[:color].present?
-      attrs[:url] = url_from offer
 
       attrs
     end

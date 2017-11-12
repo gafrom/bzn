@@ -9,17 +9,22 @@ module Catalogue::WithLinksFile
   end
 
   def empty?
-    dir = File.dirname path_to_links_file
+    dir = File.dirname path_to_file
     Dir.mkdir dir unless File.directory? dir
 
-    !File.exists? path_to_links_file
+    !File.exists? path_to_file
   end
 
   def last_modified_at
-    File.mtime path_to_links_file
+    File.mtime path_to_file
   end
 
-  def path_to_links_file
-    Rails.root.join 'storage', "#{self.class.name.underscore}.links"
+  # def path_to_links_file
+  #   Rails.root.join 'storage', "#{self.class.name.underscore}.links"
+  # end
+
+  def path_to_file(key = nil)
+    key_part = key ? ".#{key}" : ''
+    Rails.root.join 'storage', "#{self.class.name.underscore}#{key_part}"
   end
 end

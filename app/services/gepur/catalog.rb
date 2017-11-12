@@ -3,6 +3,7 @@ require 'csv'
 
 module Gepur
   class Catalog < ::Catalog
+    include Catalogue::WithAPI
     include Catalogue::WithSupplier
     include Catalogue::WithLinksFile
     include Catalogue::WithTrackedProductUpdates
@@ -38,11 +39,6 @@ module Gepur
 
     private
 
-    def update
-      puts 'Updating catalog file...'
-      IO.copy_stream open(URI("#{supplier.host}#{API_URL}")), path_to_links_file
-    end
-
     def store(data, type)
       case type
       # do not do anything for categories entries
@@ -64,7 +60,7 @@ module Gepur
                  collection color sizes compare_price price images].zip(data).to_h
       attrs.delete :_
 
-      categorizer = Categorizer.new attrs.delete(:remote_category_id)
+      categorizer = Categorizer.new remote_id: attrs.delete(:remote_category_id)
       attrs[:category_id]   = categorizer.category_id
       attrs[:is_available]  = attrs[:is_available].downcase == 'true'
       attrs[:url]           = attrs[:url][/https?:\/\/gepur\.com(\/product\/[^\s\n\t]+)/, 1]

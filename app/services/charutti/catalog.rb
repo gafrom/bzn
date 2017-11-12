@@ -5,12 +5,15 @@ module Charutti
   class Catalog < ::Catalog
     include Catalogue::WithSupplier
     include Catalogue::WithLinksFile
+    include Catalogue::WithSitemap
     include Catalogue::WithTrackedProductUpdates
 
     SITEMAP_URL = '/sitemap.xml'.freeze
 
     def sync
-      update_links if obsolete?
+      excluding = /\A\/(news\/.*|content\/.*|catalog\/.*|new-sale\/.*|sale\/.*)?\Z/
+
+      update_sitemap_links excluding if obsolete?
       process_links
     end
 
@@ -41,7 +44,7 @@ module Charutti
 
       attrs = {}
       attrs[:title] = info.css('.b-name_element').first.text.strip
-      attrs[:category] = Categorizer.new.from_title attrs[:title]
+      attrs[:category_id] = Categorizer.new(title: attrs[:title]).id_from_title
       attrs[:price] = info.css('.b-element_price').first.text.delete(' ').to_i
       attrs[:sizes] = info.css('.add-action-form>.b-size_block .b-size_block__list_li_title')
                           .map { |el| el.text }      
@@ -59,30 +62,5 @@ module Charutti
       # no collection available at the web site
       attrs
     end
-
-    def update_links
-      print "Updating links from #{supplier.host}... "
-      CSV.open path_to_links_file, 'wb' do |file|
-        links = extract_links_from open("#{supplier.host}#{SITEMAP_URL}").read
-        links.each { |url, last_modified_at| file << [url, last_modified_at] }
-      end
-      puts 'Done'
-    end
-
-    def extract_links_from(content)
-      pattern = /\A\/(news\/.*|content\/.*|catalog\/.*|new-sale\/.*|sale\/.*)?\Z/
-      Nokogiri::XML(content).css('url').inject({}) do |links, node|
-        url = node.css('loc').first.text.split(supplier.host).last
-        modified_at = node.css('lastmod').first.text.to_date
-        if url && modified_at
-          next links if url =~ pattern
-          links.merge url => modified_at
-        else
-          log_failure_for url, '[SITEMAP PARSING]'
-          links
-        end
-      end
-    end
-
   end
 end
