@@ -3,7 +3,7 @@ require 'thread' # for Mutex: Ruby doesn't provide thread-safe arrays out of the
 class ThreadPool
   def initialize(max_threads = 10)
     @pool = SizedQueue.new(max_threads)
-    max_threads.times{ @pool << 1 }
+    max_threads.times { @pool << 1 }
     @mutex = Mutex.new
     @running_threads = []
   end

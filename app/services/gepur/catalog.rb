@@ -1,22 +1,15 @@
-require 'open-uri'
-require 'csv'
-
 module Gepur
   class Catalog < ::Catalog
-    include Catalogue::WithAPI
-    include Catalogue::WithSupplier
-    include Catalogue::WithLinksFile
+    include Catalogue::WithFile
     include Catalogue::WithTrackedProductUpdates
 
-    API_URL = '/xml/gepur_catalog.csv'.freeze
-
     def sync
-      update if obsolete?
+      update_file catalog: '/xml/gepur_catalog.csv'
       # Gepur catalog csv contains two concatenated tables:
       # - First goes Categories with headers `id, category, parentId`
       # - Then Products with headers `id_product, avaliable, ...`
       reading = nil
-      CSV.foreach path_to_links_file, col_sep: ';' do |row|
+      CSV.foreach path_to_file(:catalog), col_sep: ';' do |row|
         if row[1] == 'category'
           puts "Reading table `categories` with columns: #{row}"
           next reading = :categories

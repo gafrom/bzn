@@ -1,19 +1,16 @@
-require 'open-uri'
-require 'csv'
-
 module Fly
   class Catalog < ::Catalog
-    include Catalogue::WithSupplier
-    include Catalogue::WithLinksFile
+    include Catalogue::WithFile
     include Catalogue::WithCatalogFile
     include Catalogue::WithTrackedProductUpdates
 
-    CATALOG_URL = '/bitrix/catalog_export/yandex_sliza.php'.freeze
+    NUM_THREADS = 4
 
     def sync
-      update if obsolete?
+      update_file links: '/bitrix/catalog_export/yandex_sliza.php'
 
-      grouped_offers(Nokogiri::XML(catalog_contents).css('offer')).each do |url, offers|
+      offers = Nokogiri::XML(file_contents(:links)).css('offer')
+      grouped_offers(offers).each do |url, offers|
         @pool.run do
           sizes = offers.map { |offer| size_from offer }.compact.uniq
           synchronize_with offers.first, remote_key: url,

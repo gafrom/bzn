@@ -1,17 +1,23 @@
-require 'open-uri'
-require 'csv'
-
 module BeCara
   class Catalog < ::Catalog
-    include Catalogue::WithLinksScraper
-    include Catalogue::WithSupplier
     include Catalogue::WithFile
+    include Catalogue::WithLinksScraper
     include Catalogue::WithTrackedProductUpdates
+
+    NUM_THREADS = 8
+
+    LINKS_URLS = %w[/catalog/bluzy
+                    /catalog/bluzy-yubki
+                    /catalog/platya
+                    /catalog/yubki
+                    /catalog/osen-zima
+                    /catalog/rasprodazha
+                    /catalog/zapasnaya]
 
     def sync
       update_file price: '/price'
 
-      scrape_links '/catalog/search' do |page|
+      scrape_links LINKS_URLS do |page|
         page.css('.view-content .field-content>a:first-child')
             .map { |a_node| a_node.attr('href') }
       end
@@ -25,9 +31,12 @@ module BeCara
       @price_data ||= begin
         @price_data = {}
 
-        CSV.new(file_contents(:price)).each do |row|
+        contents = file_contents(:price, encoding: 'Windows-1251')
+                                        .gsub("\r", "\n").gsub('"', '')
+
+        CSV.parse(contents, col_sep: ';') do |row|
           url, sizes, price = row
-          @price_data[url] = { sizes: sizes.split(', '), price: price.to_i }
+          @price_data[url] = { sizes: sizes.split(', '), price: price.to_i } if price.to_i > 0
         end
 
         @price_data
@@ -44,24 +53,38 @@ module BeCara
       attrs[:price] = data[:price]
       attrs[:sizes] = data[:sizes]
 
-      desc = info.css('.product_attributes>*').map do |desc_node|
-        if desc_node.css('>.label').first.text == 'Цвет:'
+      desc = ''
+      previous_label = nil
+      values = []
+      info.css('.product_attributes>div').each do |desc_node|
+        label = desc_node.css('>.label').first&.text
+        if label == 'Цвет:'
           attrs[:color] = desc_node.css('>.content').first.text
           attrs[:color_ids] = @colorizer.ids attrs[:color]
         end
-        "<p>#{desc_node.content.to_html}</p>"
+
+        text = desc_node.css('>p').first
+        desc << "<p>#{text.content}</p>" if text
+
+        label, value = desc_node.css('>div').map(&:content)
+        if label.present? && values.any?
+          desc << "<p>#{previous_label}#{values.join(', ')}</p>"
+          previous_label = label
+          values = []
+        end
+        values << "<span>#{value}</span>" if value.present?        
       end
+      desc << "<p>#{previous_label}#{values.join(', ')}</p>" if values.any?
       attrs[:description] = "<div>#{desc}</div>"
 
       attrs[:images] =
         page.css('.content>.left-side .cloud-zoom-gallery-thumbs>a')
             .map { |link| link.attr('href').split(supplier.host).second.split('?').first }
 
-      attrs[:is_available] = attrs[:price] > 0
+      attrs[:is_available] = attrs[:price] > 0 && attrs[:sizes].any?
       attrs[:compare_price] = attrs[:price] * 2
       # no collection available at the web site
 
-      byebug
       attrs
     end
 

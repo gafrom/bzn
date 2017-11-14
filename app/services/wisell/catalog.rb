@@ -1,22 +1,13 @@
-require 'open-uri'
-require 'csv'
-
 module Wisell
   class Catalog < ::Catalog
-    include Catalogue::WithSupplier
-    include Catalogue::WithLinksFile
-    include Catalogue::WithCatalogFile
+    include Catalogue::WithFile
     include Catalogue::WithTrackedProductUpdates
 
-    CATALOG_URL = {
-      clothes: '/bitrix/catalog_export/yandex_wisell_without_models_opt.php',
-      accessories: '/bitrix/catalog_export/yandex_wisell_bijou_opt.php'
-    }.freeze
-
     def sync
-      update if obsolete?
+      update_files clothes: '/bitrix/catalog_export/yandex_wisell_without_models_opt.php',
+                   accessories: '/bitrix/catalog_export/yandex_wisell_bijou_opt.php'
 
-      catalog_contents do |content|
+      file_contents do |content|
         Nokogiri::XML(content).css('offer').each do |offer|
           @pool.run { synchronize_with offer }
         end

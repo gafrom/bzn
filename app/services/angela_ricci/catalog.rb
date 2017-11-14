@@ -1,24 +1,26 @@
-require 'open-uri'
-require 'csv'
-
 module AngelaRicci
   class Catalog < ::Catalog
-    include Catalogue::WithSupplier
-    include Catalogue::WithLinksFile
+    include Catalogue::WithFile
+    include Catalogue::WithLinksScraper
     include Catalogue::WithTrackedProductUpdates
 
     def sync
-      update_links if obsolete?
+      scrape_links paginate: false do |page|
+        page.css('.content .catalog_item>a:first-child')
+            .map { |a_node| a_node.attr('href') }
+            .compact
+      end
+
+      # can you imagine? - Products do not have individual links :)
+      # not even an anchor!
       process_links
     end
 
     private
 
     def process_links
-      @initial_processing = true
-      CSV.foreach path_to_links_file do |link_data|
+      CSV.foreach path_to_file(:links) do |link_data|
         url = "#{supplier.host}#{link_data.first}"
-        next process_single_category_link url if @initial_processing
 
         @pool.run { process_single_category_link url }
       end
@@ -34,25 +36,9 @@ module AngelaRicci
     end
 
     def process_single_category_link(url)
-      @initial_processing = false
       index_page = Nokogiri::HTML open(url).read
       products_attrs = products_attributes_from index_page
       products_attrs.each { |attrs| update_product attrs }
-    end
-
-    def update_links
-      print "Updating links from #{supplier.host}... "
-      CSV.open path_to_links_file, 'wb' do |file|
-        links = extract_links_from open(supplier.host).read
-        links.each { |url| file << [url] }
-      end
-      puts 'Done'
-    end
-
-    def extract_links_from(content)
-      Nokogiri::HTML(content).css('.content .catalog_item>a:first-child').map do |a_node|
-        a_node.attr('href')
-      end.compact
     end
 
     def products_attributes_from(page)

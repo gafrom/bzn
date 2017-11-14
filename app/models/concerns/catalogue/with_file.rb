@@ -40,15 +40,16 @@ module Catalogue::WithFile
     Rails.root.join 'storage', "#{self.class.name.underscore}#{key_part}"
   end
 
-  def file_contents(type = nil)
+  def file_contents(type = nil, encoding: nil)
+    options = encoding ? { encoding: encoding } : {}
+
     if block_given?
-      self.class::FILE_URL.keys.each do |type|
-        yield File.open(path_to_file(type)).read
+      @files_urls.keys.each do |type|
+        yield File.open(path_to_file(type), options).read
       end
     else
-      # type = self.class::FILE_URL.keys.first
-      raise AttributeError unless type
-      File.open(path_to_file(type)).read
+      raise ArgumentError unless type
+      File.open(path_to_file(type), options).read
     end
   end
 end

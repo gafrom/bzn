@@ -1,7 +1,7 @@
 class Categorizer
   TITLES_SCHEDULE = {
     '(куртка|пуховик|бомбер|тренч|пальто|накидк|плащ|шуба|ветровка|парка|жилет|фр[еэ]нч|пиджак|болеро|портупея|жакет)' => 2, # Верхняя одежда
-    '(платье|сарафан|платьице)' => 3, # Платья
+    '(платье|сарафан|платьице|платья)' => 3, # Платья
     '(костюм.+спортивн|спортивн.+костюм)' => 9, # Спортивные костюмы
     '(костюм|комплект)' => 4, # Костюмы и комплекты
     '(толстовка|джемпер|свитер|свитшот|туника|кардиган|худи|батник|кофт|рубашка|блуз|футболка|майка|сорочка|боди|водолазка)' => 5, # Футболки,блузы,свитера
@@ -22,13 +22,14 @@ class Categorizer
   def category_id
     @category_id ||= begin
       fetched = case @remote_id
+                when nil then nil
                 when Array
                   @remote_id.inject do |id, remote_id|
-                    id = self.class::SCHEDULE[remote_id.to_i]
+                    id = self.class::SCHEDULE[@remote_id.to_i]
                     break id if id
                   end
                 else
-                  self.class::SCHEDULE[remote_id.to_i]
+                  self.class::SCHEDULE[@remote_id.to_i]
                 end
       fetched || id_from_title
     end

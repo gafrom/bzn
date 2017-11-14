@@ -121,6 +121,7 @@ class Colorizer
     'лепесток'     => [5],
     'лилов'        => [10, 17],
     'листья'       => [5],
+    'лимонн'       => [13],
     'лососев'      => [11],
     'лошади'       => [5],
     'люди'         => [5],
@@ -193,12 +194,14 @@ class Colorizer
     'шампанск'     => [12],
     'шашечки'      => [5],
     'шоколадн'     => [14],
+    'шоколад'      => [14],
     'штрихи'       => [5],
     'электрик'     => [16],
     'ягодн'        => [10, 11, 17],
     'якоря'        => [5],
     'круги'        => [5],
-    'пыльная роза' => [12]
+    'пыльная роза' => [12],
+    'гобелен'      => [5]
   }
 
   def initialize
@@ -229,7 +232,7 @@ class Colorizer
   end
 
   def split(string)
-    string.gsub(/([\,\-\;\.])/, SPACE).squeeze(SPACE).strip.split(SPL).reject &:empty?
+    string.gsub(/([\,\-\;\.\+])/, SPACE).squeeze(SPACE).strip.split(SPL).reject &:empty?
   end
 
   def fetch(stem)

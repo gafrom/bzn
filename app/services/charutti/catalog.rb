@@ -3,40 +3,20 @@ require 'csv'
 
 module Charutti
   class Catalog < ::Catalog
-    include Catalogue::WithSupplier
-    include Catalogue::WithLinksFile
+    include Catalogue::WithFile
     include Catalogue::WithSitemap
     include Catalogue::WithTrackedProductUpdates
 
-    SITEMAP_URL = '/sitemap.xml'.freeze
-
     def sync
-      excluding = /\A\/(news\/.*|content\/.*|catalog\/.*|new-sale\/.*|sale\/.*)?\Z/
+      extract_sitemap_links '/sitemap.xml' do |url, _|
+        short_url = url.split(supplier.host).last
+        short_url !~ /\A\/(news\/.*|content\/.*|catalog\/.*|new-sale\/.*|sale\/.*)?\Z/
+      end
 
-      update_sitemap_links excluding if obsolete?
       process_links
     end
 
     private
-
-    def process_links
-      CSV.foreach path_to_links_file do |link_data|
-        url, modified_at = link_data
-        product = Product.find_or_initialize_by remote_key: url, supplier: supplier
-        next skip url if fresh? product, modified_at
-
-        @pool.run { synchronize url, product }
-      end
-
-      @pool.await_completion
-      hide_removed_products
-
-      puts "Created: #{@created_count}\n" \
-           "Updated: #{@updated_count}\n" \
-           "Skipped: #{@skipped_count}\n" \
-           "Hidden: #{@hidden_count}\n" \
-           "Failures: #{@failures_count}"
-    end
 
     def product_attributes_from(page)
       node = page.css('#content .pane-content')
@@ -56,7 +36,7 @@ module Charutti
                                      .squeeze("\t")
       attrs[:images] = node.css('.view-content .tovar-big-image>a')
                            .map { |a_node| a_node.attr('href') }
-      attrs[:is_available] = attrs[:price] > 0
+      attrs[:is_available] = attrs[:price] > 0 && attrs[:sizes].any?
       attrs[:compare_price] = attrs[:price] * 2
       # no color available at the web site
       # no collection available at the web site

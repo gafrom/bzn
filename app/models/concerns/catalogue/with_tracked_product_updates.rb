@@ -4,23 +4,28 @@
 module Catalogue::WithTrackedProductUpdates
   private
 
-  def synchronize_with(offer, options = nil)
+  def synchronize_with(offer, options = {})
     attrs = product_attributes_from offer
-    attrs.merge! options if options
+    attrs.merge! options
     update_product attrs
   rescue NoMethodError, KeyError, NotImplementedError => ex
     log_failure_for url_from(offer), ex.message
-  end
-
-  def url_from(offer)
-    offer.css('url').first.text.split(supplier_host).last
+  ensure
+    product = find_product((attrs || {}).merge(options)[:remote_key])
+    @processed << product.id if product
   end
 
   def synchronize(url, product)
     attrs = parse(URI("#{supplier.host}#{url}")).merge! url: url
     update_product attrs, product
-  rescue OpenURI::HTTPError => ex
+  rescue OpenURI::HTTPError, Net::ReadTimeout, NotImplementedError => ex
     log_failure_for url, ex.message
+  ensure
+    @processed << product.id if product
+  end
+
+  def url_from(offer)
+    offer.css('url').first.text.split(supplier_host).last
   end
 
   def fresh?(product, modified_at_as_string)
@@ -35,32 +40,45 @@ module Catalogue::WithTrackedProductUpdates
     product_attributes_from page
   end
 
+  def find_product(key)
+    Product.find_or_initialize_by remote_key: key, supplier: supplier
+  end
+
   def update_product(attrs, product = nil)
-    unless product
-      product = Product.find_or_initialize_by remote_key: attrs[:remote_key],
-                                              supplier: supplier
-    end
+    product = find_product attrs[:remote_key] unless product
 
     product.assign_attributes attrs
     was_new_record = product.new_record?
     was_changed    = product.changes if product.changed?
-    return log_failure_for attrs[:title], product.errors.messages unless product.save
 
+    saved = product.save
     @processed << product.id
+
+    return log_failure_for attrs[:title], product.errors.messages unless saved
 
     return increment_created product if was_new_record
     return increment_updated product if was_changed
     skip product.url
   rescue NoMethodError, NotImplementedError => ex
-    log_failure_for attrs[:title], ex.message
+    log_failure_for (product.url || attrs[:title]), ex.message
   end
 
   def hide_removed_products
-    removed_from_catalog = Product.where(supplier: supplier, is_available: true)
-                                  .where.not(id: @processed)
-    removed_from_catalog.update_all is_available: false
+    @processed.delete nil
 
-    @hidden_count = removed_from_catalog.count
+    all_of_supplier = Product.available.where supplier: supplier
+    to_be_hidden = all_of_supplier.where.not id: @processed.to_a
+
+    share = to_be_hidden.size.fdiv all_of_supplier.size
+    if share > 0.33
+      error = "😱  Attempt to hide more than 33% of all available products "\
+              "(requested #{to_be_hidden.size} records, #{(share * 100).round}%). Declined."\
+              "\nTo be hidden: #{to_be_hidden.map(&:id).inspect}"
+      abort error
+    end
+
+    to_be_hidden.update_all is_available: false
+    @hidden_count = to_be_hidden.size
   end
 
   def increment_created(product)
@@ -74,7 +92,7 @@ module Catalogue::WithTrackedProductUpdates
   end
 
   def skip(url)
-    # log_success_for url, :skipped
+    log_success_for url, :skipped
     @skipped_count += 1
   end
 end

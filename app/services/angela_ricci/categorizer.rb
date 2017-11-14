@@ -22,7 +22,7 @@ module AngelaRicci
 
     def category_id
       @category_id ||= begin
-        ::Categorizer.new.id_from_title @title
+        ::Categorizer.new(title: @title).category_id
       rescue NotImplementedError
         SCHEDULE.fetch(@key).first
       end
