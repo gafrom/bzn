@@ -1,5 +1,5 @@
 class Sizer
-  PERMITTED = (38..66).step(2).to_a.freeze
+  PERMITTED = (36..66).step(2).to_a.freeze
   COMMON = {
     # common sizes
     'xs'  => '40',
@@ -15,17 +15,19 @@ class Sizer
     '6xl' => '58',
     'unified'  => 'единый'
   }.freeze
+  DASH = '-'.freeze
 
   def initialize(product = nil)
     @product = product
   end
 
   def russian(size)
-    return size if permitted.include? size.to_i
-    return common[size] if common[size]
+    subsizes = size.split DASH
 
-    error_msg = "[SIZE ERROR] Not permitted size '#{size}' for product #{@product.full_url}"
-    raise NotImplementedError, error_msg
+    subsizes.map do |subsize|
+      next subsize if permitted.include? subsize.to_i
+      common[subsize] || raise(NotImplementedError, error_msg(subsize))
+    end.join DASH
   end
 
   private
@@ -36,5 +38,9 @@ class Sizer
 
   def common
     self.class::COMMON
+  end
+
+  def error_msg(size)
+    "[SIZE ERROR] Unpermitted size '#{size}' for product #{@product.full_url}"
   end
 end

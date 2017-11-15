@@ -11,7 +11,8 @@ module Catalogue::WithTrackedProductUpdates
   rescue NoMethodError, KeyError, NotImplementedError => ex
     log_failure_for url_from(offer), ex.message
   ensure
-    product = find_product((attrs || {}).merge(options)[:remote_key])
+    attrs ||= {}
+    product = find_product(attrs.merge(options)[:remote_key])
     @processed << product.id if product
   end
 

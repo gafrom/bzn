@@ -49,7 +49,7 @@ module Fly
     def size_from(offer)
       return unless offer.attr('available').to_s == 'true'
       size_node = offer.css('param[name="Размер"]').first
-      return 'unified' unless size_node
+      return 'unified' if !size_node || size_node.text.blank?
       size_node.text
     end
 
