@@ -33,6 +33,7 @@
 
 class Product < ApplicationRecord
   PROXY_HOST = 'http://151.248.118.98'.freeze
+  MOCK = { title: 'title', category: 'category' }
 
   after_create :set_slug
 
@@ -45,15 +46,17 @@ class Product < ApplicationRecord
   validates :title, presence: true
 
   scope :available, -> { where is_available: true }
+  scope :unavailable, -> { where is_available: false }
 
-  def to_csv(&block)
+  def to_csv(strategy = nil)
+    @strategy = strategy
     return csv_rows unless block_given?
 
     csv_rows.each { |row| yield row }
   end
 
   def stock
-    is_available ? 1 : 0
+    is_available ? 20 : 0
   end
 
   def full_url
@@ -76,8 +79,13 @@ class Product < ApplicationRecord
 
   def csv_rows
     @csv_rows ||= begin
-      sizes.russian.map do |size|
-        csv_row_for size
+      case @strategy
+      when :just_stock then [[id, MOCK[:title], MOCK[:category], stock]]
+      when :just_id then [[id, title, category.title]]
+      when :full
+        sizes.russian.map do |size|
+          csv_row_for size
+        end
       end
     end
   end
