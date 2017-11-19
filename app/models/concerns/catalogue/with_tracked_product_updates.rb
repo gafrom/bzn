@@ -19,7 +19,7 @@ module Catalogue::WithTrackedProductUpdates
   def synchronize(url, product)
     attrs = parse(URI("#{supplier.host}#{url}")).merge! url: url
     update_product attrs, product
-  rescue OpenURI::HTTPError, Net::ReadTimeout, NotImplementedError => ex
+  rescue OpenURI::HTTPError, Net::ReadTimeout, Net::OpenTimeout, NotImplementedError => ex
     log_failure_for url, ex.message
   ensure
     @processed << product.id if product
