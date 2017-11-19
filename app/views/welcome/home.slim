@@ -1,0 +1,20 @@
+h1 Welcome, Коллеги
+
+- @suppliers.each do |supplier|
+  h2= supplier[:name]
+  p
+    | Last updated
+    =< supplier[:updated_at]
+
+  p
+    | Total products count
+    =< supplier[:total]
+
+  p
+    | Available
+    =< supplier[:available]
+
+  p
+    | With no color
+    =< supplier[:no_color]
+
