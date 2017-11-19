@@ -33,7 +33,7 @@
 
 class Product < ApplicationRecord
   PROXY_HOST = 'http://151.248.118.98'.freeze
-  MOCK = { title: 'title', category: 'category' }
+  MOCK = { title: 'title', price: 100 }
 
   after_create :set_slug
 
@@ -80,7 +80,7 @@ class Product < ApplicationRecord
   def csv_rows
     @csv_rows ||= begin
       case @strategy
-      when :just_stock then [[id, MOCK[:title], MOCK[:category], stock]]
+      when :just_stock then [[id, MOCK[:title], MOCK[:price], stock]]
       when :just_id then [[id, title, category.title]]
       when :full
         sizes.russian.map do |size|
