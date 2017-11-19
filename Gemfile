@@ -5,10 +5,11 @@ git_source(:github) do |repo_name|
   "https://github.com/#{repo_name}.git"
 end
 
-gem 'rails', '~> 5.1.4'
 gem 'pg'
 gem 'annotate'
 gem 'puma', '~> 3.7'
+gem 'dotenv-rails', require: 'dotenv/rails-now'
+gem 'rails', '~> 5.1.4'
 
 # Frontend stuff
 gem 'sass-rails', '~> 5.0'
@@ -34,6 +35,13 @@ group :development do
   # Spring speeds up development by keeping your application running in the background. Read more: https://github.com/rails/spring
   gem 'spring'
   gem 'spring-watcher-listen', '~> 2.0.0'
+end
+
+group :development, :staging, :production do
+  gem 'capistrano-rails', require: false
+  gem 'capistrano-rbenv', require: false
+  gem 'capistrano-bundler', require: false
+  gem 'capistrano-eye', require: false
 end
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem

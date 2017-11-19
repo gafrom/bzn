@@ -22,8 +22,9 @@ class Catalog
     @logger = Logger.new self.class::LOG_FILE
     @colorizer = Colorizer.new
 
-    # workaround to ActiveRecord bug `load_missing_constant'
-    Supplier; SizeArray; Category
+    # workaround to ActiveRecord bug _load_missing_constant_
+    Supplier; SizeArray; Category;
+    AngelaRicci::Categorizer; Fly::Categorizer; Gepur::Categorizer; Wisell::Categorizer
   end
 
   private
