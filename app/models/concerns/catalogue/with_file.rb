@@ -37,7 +37,11 @@ module Catalogue::WithFile
 
   def path_to_file(key = nil)
     key_part = key ? ".#{key}" : ''
-    Rails.root.join 'storage', "#{self.class.name.underscore}#{key_part}"
+    path = Rails.root.join 'storage', "#{self.class.name.underscore}#{key_part}"
+    dir = path.dirname
+    Dir.mkdir dir unless File.directory? dir
+
+    path
   end
 
   def file_contents(type = nil, encoding: nil)
