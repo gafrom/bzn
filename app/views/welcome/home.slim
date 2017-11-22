@@ -3,19 +3,25 @@ h1 Welcome, Коллеги
 = link_to '💾 Download mapping: ID 🌭 Supplier', export_mapping_path
 
 - @suppliers.each do |supplier|
-  h2= supplier[:name]
-  p
-    | Last updated
-    =< supplier[:updated_at]
+  .supplier style='border-bottom: 1px solid lightgray;'
+    h2= supplier[:name]
 
-  p
-    | Total products count
-    =< supplier[:total]
+    p
+      | Total products
+      =< supplier[:total]
 
-  p
-    | Available
-    =< supplier[:available]
+    p
+      | Available
+      =< supplier[:available]
 
-  p
-    | With no color
-    =< supplier[:no_color]
+    p
+      | With no color
+      =< supplier[:no_color]
+
+    div
+      = image_tag supplier[:rel_image], style: 'height: 200px; margin-right: 20px;'
+      div style='display: inline-block;'
+        p Last updated product
+        p= supplier[:last_product].title
+        p= supplier[:last_product].updated_at
+
