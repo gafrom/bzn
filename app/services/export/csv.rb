@@ -36,6 +36,13 @@ module Export
       filenames
     end
 
+    def mapping
+      ::CSV.generate do |csv|
+        csv << %w[ID Title Supplier]
+        csv_push Product.includes(:supplier, :category), csv, :just_supplier
+      end
+    end
+
     private
 
     def export_additions
@@ -58,7 +65,7 @@ module Export
         product.to_csv(strategy) { |row| file << row }
       end
 
-      @filenames << file.path
+      @filenames << file.path if file.instance_variable_get(:@io).respond_to? :path
     end
 
     def filenames

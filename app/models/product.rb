@@ -80,8 +80,9 @@ class Product < ApplicationRecord
   def csv_rows
     @csv_rows ||= begin
       case @strategy
-      when :just_stock then [[id, MOCK[:title], MOCK[:price], stock]]
-      when :just_id then [[id, title, category.title]]
+      when :just_stock    then [[id, MOCK[:title], MOCK[:price], stock]]
+      when :just_id       then [[id, title, category.title]]
+      when :just_supplier then [[id, title, supplier.name]]
       when :full
         sizes.russian.map do |size|
           csv_row_for size
