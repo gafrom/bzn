@@ -1,9 +1,6 @@
 require 'csv'
 
 module Export
-  CATEGORIES_DEPTH = 5
-  PATH_TO_FILE = Rails.root.join('storage', 'export')
-
   class CSV
     def initialize
       @filenames = []
@@ -19,7 +16,7 @@ module Export
     end
 
     def in_batches(batch_size = nil)
-      @batch_size = batch_size || 7000
+      @batch_size = batch_size || 8000
 
       export_additions
       export_disposals
