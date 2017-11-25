@@ -1,6 +1,16 @@
 h1 Welcome, Коллеги
 
-= link_to '🌭 Download mapping: ID => Supplier', export_mapping_path
+p
+  | Total available products
+  strong=< number_with_delimiter @total_available_products, delimiter: ' ' 
+
+.something
+= link_to '🌭 Download mapping: ID => Supplier', export_mapping_path, target: :_blank
+
+- @export_files_attrs.each_with_index do |attrs, i|
+  .something
+  = link_to export_catalog_path(batch_index: i + 1), target: :_blank do
+    = "🍧 Export batch #{i + 1} (#{number_to_human_size attrs[:size]}, #{l attrs[:updated_at],format: :long })"
 
 - @suppliers.each do |supplier|
   .supplier style='border-bottom: 1px solid lightgray;'
@@ -8,15 +18,15 @@ h1 Welcome, Коллеги
 
     p
       | Total products
-      =< supplier[:total]
+      strong=< supplier[:total]
 
     p
       | Available
-      =< supplier[:available]
+      strong=< supplier[:available]
 
     p
       | With no color
-      =< supplier[:no_color]
+      strong=< supplier[:no_color]
 
     div
       = link_to supplier[:rel_image] do

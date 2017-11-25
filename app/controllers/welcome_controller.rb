@@ -1,5 +1,11 @@
 class WelcomeController < ApplicationController
   def home
+    @total_available_products = Product.available.count
+
+    @export_files_attrs = Dir["#{Export::PATH_TO_FILE}_additions_batch_*.csv"].map do |filename|
+      File.open(filename) { |io| { size: io.size, updated_at: io.mtime } }
+    end
+
     @suppliers = Supplier.all.map do |supplier|
       host = Product::PROXY_HOST if Rails.env.development?
       products = supplier.products.order(updated_at: :desc)
