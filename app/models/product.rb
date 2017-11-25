@@ -84,14 +84,17 @@ class Product < ApplicationRecord
       when :just_id       then [[id, title, category.title]]
       when :just_supplier then [[id, title, supplier.name]]
       when :full
+        is_first_row = true
         sizes.russian.map do |size|
-          csv_row_for size
+          row = csv_row_for size, is_first_row
+          is_first_row = false
+          row
         end
       end
     end
   end
 
-  def csv_row_for(size)
+  def csv_row_for(size, is_first_row)
     cat_titles = category.upto_root.pluck :title
     fail IndexError unless cat_titles.count.between? 1, Export::CATEGORIES_DEPTH
     pads_num = Export::CATEGORIES_DEPTH - cat_titles.count
@@ -103,7 +106,7 @@ class Product < ApplicationRecord
       compare_price,
       stock,
       description.gsub(/\r/, ''),
-      proxied_images.join(' '),
+      (proxied_images.join(' ') if is_first_row),
       slug,
       supplier.name,
       size,
