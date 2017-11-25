@@ -1,6 +1,6 @@
 h1 Welcome, Коллеги
 
-= link_to '💾 Download mapping: ID 🌭 Supplier', export_mapping_path
+= link_to '🌭 Download mapping: ID => Supplier', export_mapping_path
 
 - @suppliers.each do |supplier|
   .supplier style='border-bottom: 1px solid lightgray;'
@@ -24,5 +24,6 @@ h1 Welcome, Коллеги
       div style='display: inline-block;'
         p Last updated product
         p= supplier[:last_product].title
+        p= "#{supplier[:last_product].price} \u20BD"
         p= supplier[:last_product].updated_at
 

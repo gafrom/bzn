@@ -23,7 +23,7 @@ class Catalog
     @colorizer = Colorizer.new
 
     # workaround to ActiveRecord bug _load_missing_constant_
-    Supplier; SizeArray; Category;
+    Supplier; SizeArray; Category; Product; Coloration
     AngelaRicci::Categorizer; Fly::Categorizer; Gepur::Categorizer; Wisell::Categorizer
   end
 
