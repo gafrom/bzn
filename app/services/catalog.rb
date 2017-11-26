@@ -23,21 +23,22 @@ class Catalog
     @colorizer = Colorizer.new
 
     # workaround to ActiveRecord bug _load_missing_constant_
-    Supplier; SizeArray; Category; Product; Coloration
+    Supplier; SizeArray; Category; Product; Coloration; Color
     AngelaRicci::Categorizer; Fly::Categorizer; Gepur::Categorizer; Wisell::Categorizer
   end
 
   private
 
   def log_failure_for(url, error)
-    msg = "Processing #{url}... Failed: #{error}\n"
+    msg = "Processing #{url} ... Failed: #{error}\n"
     @failures_count += 1
     @logger.error msg
     puts msg
   end
 
-  def log_success_for(url, action = :done)
-    puts "Processing #{url}... #{action.to_s.capitalize}\n"
+  def log_success_for(url, action = :done, etc = nil)
+    etc = ": #{etc}" if etc
+    puts "Processing #{url} ... #{action.to_s.capitalize}#{etc}\n"
   end
 
   def headers

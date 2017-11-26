@@ -58,7 +58,7 @@ module Catalogue::WithTrackedProductUpdates
     return log_failure_for attrs[:title], product.errors.messages unless saved
 
     return increment_created product if was_new_record
-    return increment_updated product if was_changed
+    return increment_updated product, was_changed if was_changed
     skip product.url
   rescue NoMethodError, NotImplementedError => ex
     log_failure_for (product.url || attrs[:title]), ex.message
@@ -87,8 +87,8 @@ module Catalogue::WithTrackedProductUpdates
     @created_count += 1
   end
 
-  def increment_updated(product)
-    log_success_for product.url, :updated
+  def increment_updated(product, changes)
+    log_success_for product.url, :updated, changes
     @updated_count += 1
   end
 
