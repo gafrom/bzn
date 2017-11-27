@@ -51,7 +51,7 @@ module AngelaRicci
                               .gsub('«', '').gsub('»', '')
           attrs[:images] = item.css('a.goods_photo').inject([]) do |s, a_node|
             ref = a_node.attr('href')
-            ref =~ /youtube/i ? s : (s << ref)
+            ref =~ /(youtube|goods_photos\/1\Z)/i ? s : (s << ref)
           end
 
           attrs[:is_available] = info.css('>.cataloginner2 .catalogparam>td')
