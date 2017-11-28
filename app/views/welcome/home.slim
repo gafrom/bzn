@@ -7,14 +7,15 @@ p
 .something
 = link_to '🌭 Download mapping: ID => Supplier', export_mapping_path, target: :_blank
 
+h2 Catalog files:
 - @export_files_attrs.each_with_index do |attrs, i|
   .something
-  = link_to export_catalog_path(batch_index: i + 1), target: :_blank do
-    = "🍧 Export batch #{i + 1} (#{number_to_human_size attrs[:size]}, #{l attrs[:updated_at],format: :long })"
-
+  = link_to export_catalog_path(attrs[:name]), target: :_blank do
+    = "🍧 Export#{attrs[:name]} (#{number_to_human_size attrs[:size]}, #{l attrs[:updated_at],format: :long })"
+h2 Suppliers:
 - @suppliers.each do |supplier|
   .supplier style='border-bottom: 1px solid lightgray;'
-    h2= supplier[:name]
+    h3= supplier[:name]
 
     p
       | Total products

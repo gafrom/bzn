@@ -4,7 +4,7 @@ class ExportController < ApplicationController
   end
 
   def catalog
-    filename = "#{Export::PATH_TO_FILE}_additions_batch_#{params[:batch_index]}.csv"
+    filename = "#{Export::PATH_TO_FILE}#{params[:file_suffix]}.csv"
     send_file File.open(filename)
   end
 end
