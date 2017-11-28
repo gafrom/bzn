@@ -16,4 +16,4 @@ set :deploy_to, -> { '~/bzn' }
 # set :whenever_identifier, -> { "#{fetch(:application)}_#{fetch(:stage)}" }
 
 append :linked_files, '.env.production'
-append :linked_dirs, 'log', 'tmp/pids', 'tmp/cache', 'tmp/sockets', 'db/backups'
+append :linked_dirs, 'log', 'tmp/pids', 'tmp/cache', 'tmp/sockets', 'db/backups', 'storage'
