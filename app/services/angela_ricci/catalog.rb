@@ -54,13 +54,14 @@ module AngelaRicci
             ref =~ /(youtube|goods_photos\/1\Z)/i ? s : (s << ref)
           end
 
-          attrs[:is_available] = info.css('>.cataloginner2 .catalogparam>td')
+          attrs[:price] = info.css('>.cataloginner2 .catalogparam>td>.price>span')
+                              .first.text.to_i
+          attrs[:is_available] =
+            attrs[:price] > 0 && info.css('>.cataloginner2 .catalogparam>td')
                                      .any? { |td| td.text == 'Есть в наличии!' }
 
           attrs[:sizes] = info.css('>.cataloginner2 .catalogparam>td.sizes')
                               .first.text.split(', ')
-          attrs[:price] = info.css('>.cataloginner2 .catalogparam>td>.price>span')
-                              .first.text.to_i
           categorizer = Categorizer.new attrs[:title]
           # Still do not know what the art is, but just in case
           # attrs[:remote_key] = item.css('td>div>a.goods_photo').first.attr('art')
