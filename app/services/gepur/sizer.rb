@@ -41,7 +41,7 @@ module Gepur
       subsizes.map do |subsize|
         case subsize
         # shoes, kids and bikini sizes
-        when /\A([\d.,]+|75B|80C)\Z/i then subsize
+        when /\A([\d.,]+|75B|75C|80C)\Z/i then subsize
         # common sizes
         else numeric subsize.downcase
         end
