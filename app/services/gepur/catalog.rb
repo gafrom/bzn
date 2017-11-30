@@ -65,7 +65,7 @@ module Gepur
                                             .split(',').compact
       attrs[:color_ids] = @colorizer.ids attrs[:color] if attrs[:color].present?
       description = attrs[:description].split(/(?<=[а-я])(?=[А-Я])/).map do |desc|
-        "<p>#{desc}</p>"
+        "<p>#{desc.strip}</p>"
       end.join
       attrs[:description] = "<div>#{description}</div>"
 
