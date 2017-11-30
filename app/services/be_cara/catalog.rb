@@ -67,15 +67,22 @@ module BeCara
         desc << "<p>#{text.content}</p>" if text
 
         label, value = desc_node.css('>div').map(&:content)
-        if label.present? && values.any?
-          desc << "<p>#{previous_label}#{values.join(', ')}</p>"
-          previous_label = label
-          values = []
+        if label.present? 
+          label = label[0..-2] if label[-1] == ':'
+          previous_label ||= label
+          if values.any?
+            desc << "<p><b>#{previous_label}</b>#{values.join(', ')}</p>"
+            previous_label = label
+            values = []
+          end
         end
-        values << "<span>#{value}</span>" if value.present?        
+        if value.present?
+          value = value[0..-2] if value[-1] == ':'
+          values << value
+        end
       end
-      desc << "<p>#{previous_label}#{values.join(', ')}</p>" if values.any?
-      attrs[:description] = "<div>#{desc}</div>"
+      desc << "<p><b>#{previous_label}</b>#{values.join(', ')}</p>" if values.any?
+      attrs[:description] = desc
 
       attrs[:images] =
         page.css('.content>.left-side .cloud-zoom-gallery-thumbs>a')

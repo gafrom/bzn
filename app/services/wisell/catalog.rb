@@ -37,13 +37,13 @@ module Wisell
 
       desc = "<p>#{offer.css('description').first.text}</p>"
       temp = offer.css('country_of_origin').first
-      desc << "<p>Страна производства #{temp.text}</p>" if temp
+      desc << "<p><b>Страна производства</b>#{temp.text}</p>" if temp
       ['Материал', 'Ткань', 'Длина размера'].each do |param|
         temp = offer.css("param[name='#{param}']").first
-        desc << "<p>#{param} <span>#{temp.text}</span></p>" if temp
+        desc << "<p><b>#{param}</b>#{temp.text}</p>" if temp
       end
+      attrs[:description] = desc
 
-      attrs[:description] = "<div>#{desc}</div>"
       attrs[:images] = offer.css('picture')
                             .map { |pic| pic.text.split(supplier_host).second }
 

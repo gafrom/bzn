@@ -22,7 +22,7 @@ module VeraNova
       attrs[:category_id] = Categorizer.new(title: attrs[:title]).id_from_title
       attrs[:price] = page.css('#formated_price').first.attr('price').to_i
       desc = page.css('[itemprop="model"]').first.text
-      attrs[:description] = desc.blank? ? '' : "<p class='fabric'>Состав: #{desc}</p>"
+      attrs[:description] = desc.blank? ? '' : "<p><b>Состав</b>#{desc}</p>"
       attrs[:description] << page.css('#tab-description').first.to_html.gsub("\n", ' ').squeeze(' ')
       attrs[:images] = page.css('#one-image>.item>img')
                            .map { |img| img.attr('src').split(supplier.host).second }
