@@ -1,4 +1,5 @@
 class Colorizer
+  SPLIT_CHARS = /([\,\-\;\.\+])/
   ADJ_SUF = /(ый|ий|ой|ая|яя|ое|ее|ом|ем|ые|ие|ым)\Z/
   OE_SUF = /[ое]\Z/
   SPACE = ' '.freeze
@@ -7,7 +8,6 @@ class Colorizer
                  \Aна\Z \Aс\Z \Ac\Z \Aв\Z \Aабстрактн \Aглубок \Aклассическ \Aклеверн
                  \Aмелк \Aнежн \Aотделка \Aприглушен \Aтонк \Aтропическ \Aфойл
                  \Aцвет\Z \Aширок \A&quot\Z]
-
   SCHEDULE = {
     'мультиколлор'    =>  [3], # Мультиколор
     'мультиколор'     =>  [3], # Мультиколор
@@ -234,7 +234,7 @@ class Colorizer
   end
 
   def split(string)
-    string.gsub(/([\,\-\;\.\+])/, SPACE).squeeze(SPACE).strip.split(SPL).reject &:empty?
+    string.gsub(SPLIT_CHARS, SPACE).squeeze(SPACE).strip.split(SPL).reject &:empty?
   end
 
   def fetch(stem)
