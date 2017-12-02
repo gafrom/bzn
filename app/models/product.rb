@@ -112,7 +112,8 @@ class Product < ApplicationRecord
       size,
       joined_colors,
       collection,
-      full_url
+      full_url,
+      color&.gsub('+', ' ')
     ]
   end
 
