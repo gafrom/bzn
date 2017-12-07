@@ -31,6 +31,11 @@ module Valentina
                           .first.text.gsub(/[^\d]/, '').to_i
       attrs[:sizes] = info.css('>.table_product thead .cellname')
                           .map { |size_node| size_node.text.strip }
+      size_desc = ''
+      if attrs[:category_id] == 15
+        size_desc = "<p><b>Размер</b>#{attrs[:sizes].join(', ')}</p>" if attrs[:sizes].any?
+        attrs[:sizes] = ['unified']
+      end
 
       desc = info.css('>.product-body').first.inner_html
                  .strip.gsub('strong>', 'b>').gsub(':</b>', '</b>')
@@ -42,6 +47,7 @@ module Valentina
 
         desc << "<p><b>#{label}</b>#{value}</p>"
       end
+      desc << size_desc
       attrs[:description] = desc
 
       attrs[:color] = info.css('>.table_product tbody .rowcolor').first&.text
@@ -52,7 +58,9 @@ module Valentina
         image_div.css('>div a:last-of-type')
                  .map { |link| link.attr('href').split(supplier.host).second.split('?').first }
 
-      attrs[:is_available] = attrs[:price] > 0 && attrs[:sizes].any?
+      attrs[:is_available] = 
+        attrs[:price] > 0  
+      attrs[:price] > 0 && attrs[:sizes].any?
       attrs[:compare_price] = attrs[:price] * 2
       # no collection available at the web site
 
