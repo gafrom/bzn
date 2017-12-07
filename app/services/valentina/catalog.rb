@@ -47,9 +47,10 @@ module Valentina
       attrs[:color] = info.css('>.table_product tbody .rowcolor').first&.text
       attrs[:color_ids] = @colorizer.ids attrs[:color] if attrs[:color]
 
+      image_div = all_info.css('.product-image').first
       attrs[:images] =
-        page.css('.product-image>div a:last-child')
-            .map { |link| link.attr('href').split(supplier.host).second.split('?').first }
+        image_div.css('>div a:last-of-type')
+                 .map { |link| link.attr('href').split(supplier.host).second.split('?').first }
 
       attrs[:is_available] = attrs[:price] > 0 && attrs[:sizes].any?
       attrs[:compare_price] = attrs[:price] * 2
