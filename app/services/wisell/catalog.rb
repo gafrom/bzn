@@ -42,7 +42,7 @@ module Wisell
         attrs[:sizes] = ['unified']
       end
 
-      if attrs[:sizes].present? && [11, 15].include?(attrs[:category_id])
+      if attrs[:sizes].blank? && [11, 15].include?(attrs[:category_id])
         attrs[:sizes] = ['unified']
       end
 
