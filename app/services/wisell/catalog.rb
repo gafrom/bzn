@@ -35,6 +35,17 @@ module Wisell
       attrs[:category_id] = categorizer.category_id
       attrs[:price] = offer.css('price').first.text.to_i
 
+      size_node = offer.css('param[name="Размер"]').first
+      if size_node
+        attrs[:sizes] = size_node.text.split(', ')
+      elsif attrs[:category_id] == 13
+        attrs[:sizes] = ['unified']
+      end
+
+      if attrs[:sizes].present? && [11, 15].include?(attrs[:category_id])
+        attrs[:sizes] = ['unified']
+      end
+
       desc = "<p>#{offer.css('description').first.text}</p>"
       temp = offer.css('country_of_origin').first
       desc << "<p><b>Страна производства</b>#{temp.text}</p>" if temp
@@ -46,13 +57,6 @@ module Wisell
 
       attrs[:images] = offer.css('picture')
                             .map { |pic| pic.text.split(supplier_host).second }
-
-      size_node = offer.css('param[name="Размер"]').first
-      if size_node
-        attrs[:sizes] = size_node.text.split(', ')
-      elsif attrs[:category_id] == 13
-        attrs[:sizes] = ['unified']
-      end
 
       attrs[:is_available] = offer.attr('available').to_s == 'true'
       attrs[:compare_price] = attrs[:price] * 2
