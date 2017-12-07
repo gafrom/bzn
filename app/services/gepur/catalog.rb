@@ -67,7 +67,7 @@ module Gepur
       description = attrs[:description].split(/(?<=[а-я])(?=[А-Я])/).map do |desc|
         "<p>#{desc.strip}</p>"
       end.join
-      attrs[:description] = "<div>#{description}</div>"
+      attrs[:description] = description
 
       attrs
     end
