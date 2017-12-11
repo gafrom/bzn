@@ -13,6 +13,7 @@ class WelcomeController < ApplicationController
       products = supplier.products.order(updated_at: :desc)
       last_product = products.first
       {
+        id: supplier.id,
         name: supplier.name,
         rel_image: "#{host}/#{supplier.slug}#{last_product.images.first}",
         last_product: last_product,

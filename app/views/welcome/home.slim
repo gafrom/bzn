@@ -38,3 +38,6 @@ h2 Suppliers:
         p= "#{supplier[:last_product].price} \u20BD"
         p= supplier[:last_product].updated_at
 
+    div
+      = link_to '🌭 Synchronize', sync_path(supplier[:id]), method: :post
+      .js-sync-logs= render 'logs', message: 'Please start synchronizing'
