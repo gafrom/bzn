@@ -1,6 +1,25 @@
 module Catalogue::WithSitemap
   private
 
+  def extract_sitemap_links(url, &block)
+    full_url = "#{supplier.host}#{url}"
+    print "Updating links from #{full_url} ... "
+    links = nil
+    CSV.open path_to_file(:links), 'wb' do |file|
+      links = extract_from_xml ungzipped_io(full_url).read
+      links = links.select &block if block
+      links.each { |url, modified_at| file << [url, modified_at] }
+    end
+    puts "💃  Done. Extracted #{links.size} links."
+  end
+
+  def ungzipped_io(url)
+    io = open url
+    return io if url[-3..-1] != '.gz'
+
+    Zlib::GzipReader.new io
+  end
+
   def process_links
     CSV.foreach path_to_file(:links) do |link|
       url, modified_at = link
@@ -28,18 +47,6 @@ module Catalogue::WithSitemap
   def product_fresh?(product, modified_at_as_string)
     updated_at = product.updated_at
     updated_at && updated_at > modified_at_as_string.to_date
-  end
-
-  def extract_sitemap_links(url, &block)
-    full_url = "#{supplier.host}#{url}"
-    print "Updating links from #{full_url} ... "
-    links = nil
-    CSV.open path_to_file(:links), 'wb' do |file|
-      links = extract_from_xml open(full_url).read
-      links = links.select &block if block
-      links.each { |url, modified_at| file << [url, modified_at] }
-    end
-    puts "💃  Done. Extracted #{links.size} links."
   end
 
   def extract_from_xml(content)
