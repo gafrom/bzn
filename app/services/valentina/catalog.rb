@@ -56,11 +56,15 @@ module Valentina
       image_div = all_info.css('.product-image').first
       attrs[:images] =
         image_div.css('>div a:last-of-type')
-                 .map { |link| link.attr('href').split(supplier.host).second.split('?').first }
+                 .map do |link|
+                    href = link.attr('href')
+                    next if href =~ /no_photo/
 
-      attrs[:is_available] = 
-        attrs[:price] > 0  
-      attrs[:price] > 0 && attrs[:sizes].any?
+                    href.split(supplier.host).second.split('?').first
+                  end.compact
+
+      attrs[:is_available] =
+        attrs[:price] > 0 && attrs[:sizes].any? && attrs[:images].any?
       attrs[:compare_price] = attrs[:price] * 2
       # no collection available at the web site
 
