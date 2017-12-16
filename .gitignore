@@ -15,3 +15,6 @@
 # Ignore data stored
 /storage/*
 !/storage/.keep
+
+# Ignore env vars
+.env.local
