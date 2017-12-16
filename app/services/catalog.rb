@@ -41,7 +41,11 @@ class Catalog
     puts "Processing #{url} ... #{action.to_s.capitalize}#{etc}\n"
   end
 
-  def headers
-    {}
+  def request_headers
+    @request_headers ||= {}
+  end
+
+  def merge_request_headers!(headers)
+    request_headers.merge! headers
   end
 end

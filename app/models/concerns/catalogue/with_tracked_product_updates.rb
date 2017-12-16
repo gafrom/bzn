@@ -35,7 +35,7 @@ module Catalogue::WithTrackedProductUpdates
   end
 
   def parse(uri)
-    content = open(uri, headers).read
+    content = open(uri, request_headers).read
     page = Nokogiri::HTML content
 
     product_attributes_from page
