@@ -1,5 +1,6 @@
 module VeraNova
   class Catalog < ::Catalog
+    include Catalogue::Authenticatable
     include Catalogue::WithFile
     include Catalogue::WithSitemap
     include Catalogue::WithTrackedProductUpdates
@@ -10,6 +11,8 @@ module VeraNova
     end
 
     def sync
+      login '/index.php?route=account/login', email: ENV.fetch('VERANOVA_EMAIL'),
+                                              password: ENV.fetch('VERANOVA_PASSWORD')
       extract_sitemap_links '/sitemap-product.xml'
       process_links
     end
@@ -20,7 +23,10 @@ module VeraNova
       attrs = {}
       attrs[:title] = page.css('[itemprop="name"]').first.text
       attrs[:category_id] = Categorizer.new(title: attrs[:title]).id_from_title
-      attrs[:price] = page.css('#formated_price').first.attr('price').to_i
+
+      price_node = page.css('#formated_special').first || page.css('#formated_price').first
+      attrs[:price] = price_node.attr('price').to_i
+
       desc = page.css('[itemprop="model"]').first.text
       attrs[:description] = desc.blank? ? '' : "<p><b>Состав</b>#{desc}</p>"
       attrs[:description] << page.css('#tab-description').first.to_html.gsub("\n", ' ').squeeze(' ')
