@@ -48,13 +48,6 @@ class Product < ApplicationRecord
   scope :available, -> { where is_available: true }
   scope :unavailable, -> { where is_available: false }
 
-  def to_csv(strategy = nil)
-    @strategy = strategy
-    return csv_rows unless block_given?
-
-    csv_rows.each { |row| yield row }
-  end
-
   def stock
     is_available ? 20 : 0
   end
@@ -75,18 +68,16 @@ class Product < ApplicationRecord
     colors.map(&:title).join '##'
   end
 
-  private
-
-  def csv_rows
-    @csv_rows ||= begin
-      case @strategy
+  def rows(strategy)
+    @rows ||= begin
+      case strategy
       when :just_stock    then [[id, MOCK[:title], MOCK[:price], stock]]
       when :just_id       then [[id, title, category.title]]
       when :just_supplier then [[id, title, supplier.name]]
       when :full
         is_first_row = true
         sizes.russian.map do |size|
-          row = csv_row_for size, is_first_row
+          row = row_for size, is_first_row
           is_first_row = false
           row
         end
@@ -94,7 +85,9 @@ class Product < ApplicationRecord
     end
   end
 
-  def csv_row_for(size, is_first_row)
+  private
+
+  def row_for(size, is_first_row)
     cat_titles = category.upto_root.pluck :title
     fail IndexError unless cat_titles.count.between? 1, Export::CATEGORIES_DEPTH
     pads_num = Export::CATEGORIES_DEPTH - cat_titles.count

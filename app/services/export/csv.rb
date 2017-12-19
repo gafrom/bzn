@@ -1,18 +1,18 @@
 require 'csv'
 
 module Export
-  class CSV
-    def initialize
-      @filenames = []
-    end
+  class CSV < Base
+    include Pushable
 
     def single_file(how_many = nil)
-      ::CSV.open "#{PATH_TO_FILE}.csv", 'wb' do |file|
+      filename = "#{PATH_TO_FILE}.csv"
+
+      ::CSV.open filename, 'wb' do |file|
         products = Product.includes(:supplier, :category).available.limit(how_many)
-        csv_push products, file
+        push_to file, products
       end
 
-      filenames
+      filename
     end
 
     def in_batches(batch_size = nil)
@@ -27,7 +27,7 @@ module Export
     def fix
       ::CSV.open "#{PATH_TO_FILE}_fix.csv", 'wb' do |file|
         products = Product.includes(:supplier, :category).available.limit(how_many)
-        csv_push products, file, :just_id
+        push_to file, products, :just_id
       end
 
       filenames
@@ -36,7 +36,7 @@ module Export
     def mapping
       ::CSV.generate do |csv|
         csv << %w[ID Title Supplier]
-        csv_push Product.includes(:supplier, :category), csv, :just_supplier
+        push_to csv, Product.includes(:supplier, :category), :just_supplier
       end
     end
 
@@ -47,26 +47,18 @@ module Export
 
       batches.each_with_index do |batch, num|
         filename = "#{PATH_TO_FILE}_additions_batch_#{num + 1}.csv"
-        ::CSV.open(filename, 'wb') { |file| csv_push batch, file }
+        ::CSV.open(filename, 'wb') { |file| push_to file, batch }
+
+        filenames << filename
       end
     end
 
     def export_disposals
       products = Product.includes(:supplier, :category).unavailable
       filename = "#{PATH_TO_FILE}_disposals.csv"
-      ::CSV.open(filename, 'wb') { |file| csv_push products, file, :just_stock }
-    end
+      ::CSV.open(filename, 'wb') { |file| push_to file, products, :just_stock }
 
-    def csv_push(batch, file, strategy = :full)
-      batch.each do |product|
-        product.to_csv(strategy) { |row| file << row }
-      end
-
-      @filenames << file.path if file.instance_variable_get(:@io).respond_to? :path
-    end
-
-    def filenames
-      @filenames.size == 1 ? @filenames.first : @filenames
+      filenames << filename
     end
   end
 end
