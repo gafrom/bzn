@@ -4,7 +4,8 @@ class ExportController < ApplicationController
   end
 
   def catalog
-    filename = "#{Export::PATH_TO_FILE}#{params[:file_suffix]}.csv"
+    ext = params[:file_suffix] ? 'csv' : 'xlsx'
+    filename = "#{Export::PATH_TO_FILE}#{params[:file_suffix]}.#{ext}"
     send_file File.open(filename)
   end
 end

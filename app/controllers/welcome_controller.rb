@@ -2,8 +2,8 @@ class WelcomeController < ApplicationController
   def home
     @total_available_products = Product.available.count
 
-    @export_files_attrs = Dir["#{Export::PATH_TO_FILE}*.csv"].map do |filename|
-      File.open(filename) { |io| { name: filename[/export(.*)\.csv/,1],
+    @export_files_attrs = Dir["#{Export::PATH_TO_FILE}*"].map do |filename|
+      File.open(filename) { |io| { name: filename[/export(.*)\.\w+\Z/,1],
                                    size: io.size,
                                    updated_at: io.mtime } }
     end
