@@ -14,6 +14,7 @@ module Gepur
       '5xl' => '56',
       '6xl' => '58',
       'ун'  => 'единый',
+      'unified' => 'единый',
 
       # iphone cases
       '6s'  => 'iPhone 6S',
