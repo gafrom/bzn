@@ -41,10 +41,7 @@ module Wisell
       elsif attrs[:category_id] == 13
         attrs[:sizes] = ['unified']
       end
-
-      if attrs[:sizes].blank? && [11, 15].include?(attrs[:category_id])
-        attrs[:sizes] = ['unified']
-      end
+      attrs[:sizes] = correct_size_if_accessory attrs[:sizes], attrs[:category_id]
 
       desc = "<p>#{offer.css('description').first.text}</p>"
       temp = offer.css('country_of_origin').first

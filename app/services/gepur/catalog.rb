@@ -54,10 +54,13 @@ module Gepur
       attrs.delete :_
 
       categorizer = Categorizer.new remote_id: attrs.delete(:remote_category_id)
-      attrs[:category_id]   = categorizer.category_id
-      attrs[:is_available]  = attrs[:is_available].downcase == 'true'
-      attrs[:url]           = attrs[:url][/https?:\/\/gepur\.com(\/product\/[^\s\n\t]+)/, 1]
-      attrs[:sizes]         = attrs[:sizes].downcase.split(', ').compact
+      attrs[:category_id]  = categorizer.category_id
+      attrs[:is_available] = attrs[:is_available].downcase == 'true'
+      attrs[:url]          = attrs[:url][/https?:\/\/gepur\.com(\/product\/[^\s\n\t]+)/, 1]
+
+      attrs[:sizes] = attrs[:sizes].downcase.split(', ').compact if attrs[:sizes]
+      attrs[:sizes] = correct_size_if_accessory attrs[:sizes], attrs[:category_id]
+
       attrs[:price]         = attrs[:price][/RUB:(\d+)/, 1]
       attrs[:compare_price] = attrs[:compare_price][/RUB:(\d+)/, 1]
       attrs[:images]        = attrs[:images].gsub(/\/[^\/]+\/([^\/]+(,|\z))/, '/origins/\1')

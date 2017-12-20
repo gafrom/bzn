@@ -48,4 +48,9 @@ class Catalog
   def merge_request_headers!(headers)
     request_headers.merge! headers
   end
+
+  def correct_size_if_accessory(sizes, category_id)
+    return sizes if sizes.present? || ![11, 15].include?(category_id)
+    ['unified']
+  end
 end
