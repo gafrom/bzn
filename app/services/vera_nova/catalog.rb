@@ -35,6 +35,13 @@ module VeraNova
       attrs[:sizes] = page.css('#product .owq-name').map { |el| el.text }
       attrs[:is_available] = attrs[:price] > 0
       attrs[:compare_price] = attrs[:price] * 2
+
+      raw_length = page.css('.product-info .econom').first
+      if raw_length
+        length = raw_length.text[/длина[^\d]+(\d+)[^\d]*см/i, 1]&.to_i
+        attrs[:length] = length if length > 0
+      end
+
       # no color available at the web site
       # no collection available at the web site
       attrs
