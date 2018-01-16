@@ -1,0 +1,5 @@
+h1= t :products, count: @resources.limit(nil).count
+
+= link_to t(:back_to_admin_home), admin_root_path
+
+ul.products= render @resources

@@ -1,0 +1,44 @@
+.main_content {
+  display: inline-block;
+  width: 70%;
+}
+
+.side_bar {
+  display: inline-block;
+  width: 30%;
+  vertical-align: top;
+}
+
+.images {
+  &__image {
+    max-width: 150px;
+    max-height: 300px;
+  }
+}
+
+.simple_form {
+  &__multiple-select-field {
+    width: 200px;
+  }
+  label {
+    display: block;
+  }
+  .hint {
+    display: block;
+    color: lightgrey;
+    font-size: 90%;
+    font-style: italic;
+  }
+}
+
+.product_item {
+  &__info {
+    vertical-align: top;
+    display: inline-block;
+    width: 70%;
+  }
+  &__img {
+    width: 10%;
+    display: inline-block;
+  }
+}

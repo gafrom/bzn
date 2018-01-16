@@ -31,3 +31,8 @@
 
 en:
   hello: "Hello world"
+  updated_success: Товар успешно обновлён
+
+  products: "Товары (%{count})"
+
+  back_to_admin_home: Назад на Главную панель

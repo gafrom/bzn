@@ -1,0 +1,23 @@
+en:
+  helpers:
+    submit:
+      product:
+        update: Обновить товар
+  simple_form:
+      labels:
+        product:
+          color: Цвет (название)
+          colors: Категории цвета
+      hints:
+        product:
+          colors: Для выделения нескольких цветов или снятия выделения необходимо зажать CTRL (CMD)
+      placeholders:
+        user:
+          username: 'Your username'
+          password: '****'
+      include_blanks:
+        user:
+          age: 'Rather not say'
+      prompts:
+        user:
+          role: 'Select your role'

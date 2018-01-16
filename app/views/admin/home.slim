@@ -1,0 +1,44 @@
+h1= "Welcome, #{@user.name}"
+
+p
+  | Total available products
+  strong=< number_with_delimiter @total_available_products, delimiter: ' ' 
+
+.something
+= link_to "Товары без цвета (#{@num_products_with_no_color})", admin_products_path
+
+
+.something
+= link_to '🌭 Download mapping: ID => Supplier', export_mapping_path, target: :_blank
+
+h2 Catalog files:
+- @export_files_attrs.each_with_index do |attrs, i|
+  .something
+  = link_to export_catalog_path(attrs[:name]), target: :_blank do
+    = "🍧 Export#{attrs[:name]} (#{number_to_human_size attrs[:size]}, #{l attrs[:updated_at],format: :long })"
+h2 Suppliers:
+- @suppliers.each do |supplier|
+  .supplier style='border-bottom: 1px solid lightgray;'
+    h3= supplier[:name]
+
+    p
+      | Total products
+      strong=< supplier[:total]
+
+    p
+      | Available
+      strong=< supplier[:available]
+
+    p
+      | With no color
+      strong=< supplier[:no_color]
+
+    div
+      = link_to supplier[:rel_image] do
+        = image_tag supplier[:rel_image], style: 'height: 200px; margin-right: 20px;'
+      div style='display: inline-block;'
+        p Last updated product
+        p= supplier[:last_product].title
+        p= "#{supplier[:last_product].price} \u20BD"
+        p= supplier[:last_product].updated_at
+

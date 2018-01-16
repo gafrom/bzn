@@ -1,0 +1,15 @@
+h1 Редактирование товара
+
+- flash.each do |k, v|
+  p class="flash #{k}"= v
+
+.main_content
+  h2= @resource.title
+
+  p= link_to 'Ссылка на сайт производителя', @resource.full_url, target: :_blank
+
+  ul.images= render collection: @resource.proxied_images.first(5), partial: 'product_image', as: :image_url
+
+.side_bar
+  = link_to 'Назад к товарам', admin_products_path
+  = render 'form', product: @resource

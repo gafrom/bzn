@@ -1,0 +1,17 @@
+body {
+  margin: 0;
+  padding: 0;
+}
+
+.flash {
+  padding: 15px 20px;
+
+  &.alert {
+    background-color: #f2c6c6;
+    color: #890303;
+  }
+  &.notice {
+    background-color: #aad15d;
+    color: #1b2900;
+  }
+}

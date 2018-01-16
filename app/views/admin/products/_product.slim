@@ -1,0 +1,4 @@
+.product_item__info
+  p= link_to product.title, edit_admin_product_path(product)
+  p== product.description
+img.product_item__img src=product.proxied_images.first
