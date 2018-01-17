@@ -3,7 +3,8 @@ class Admin::DashboardController < AdminController
     @total_available_products = Product.available.count
 
     @num_products_with_no_color =
-      Product.joins('left join colorations on colorations.product_id = products.id')
+      Product.available
+             .joins('left join colorations on colorations.product_id = products.id')
              .where('colorations.color_id is null').count
 
     @export_files_attrs = Dir["#{Export::PATH_TO_FILE}*"].map do |filename|
