@@ -50,7 +50,7 @@ class Catalog
   end
 
   def correct_size_if_accessory(sizes, category_id)
-    return sizes if sizes.present? || ![11, 15].include?(category_id)
+    return sizes if sizes.present? || ![11, 13, 15].include?(category_id)
     ['unified']
   end
 end
