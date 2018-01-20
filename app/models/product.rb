@@ -105,10 +105,14 @@ class Product < ApplicationRecord
       supplier.name,
       size,
       joined_colors,
-      collection,
+      featured_collections,
       full_url,
       color&.gsub('+', ' ')
     ]
+  end
+
+  def featured_collections
+    Collectionizer.build self
   end
 
   def set_slug
