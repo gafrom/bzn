@@ -26,6 +26,7 @@ class Admin::ProductsController < AdminController
   def set_resources
     @resources = Product.available
                         .joins('left join colorations on colorations.product_id = products.id')
-                        .where('colorations.color_id is null').limit(MAX_ITEMS)
+                        .where('colorations.color_id is null').where.not(supplier_id: 10)
+                        .limit(MAX_ITEMS)
   end
 end
