@@ -36,8 +36,10 @@ module Ajour
         when /размер/i
           next # no need here - because we scraped sizes above
         when /цвет/i
-          attrs[:color] = value
-          attrs[:color_ids] = @colorizer.ids attrs[:color] if attrs[:color].present?
+          if value.present?
+            attrs[:color] = value
+            attrs[:color_ids] = @colorizer.ids value
+          end
         end
 
         desc << "<p><b>#{label}</b>#{value}</p>"

@@ -59,8 +59,11 @@ module BeCara
       info.css('.product_attributes>div').each do |desc_node|
         label = desc_node.css('>.label').first&.text
         if label == 'Цвет:'
-          attrs[:color] = desc_node.css('>.content').first.text
-          attrs[:color_ids] = @colorizer.ids attrs[:color]
+          color = desc_node.css('>.content').first.text.strip
+          if color.present?
+            attrs[:color] = color
+            attrs[:color_ids] = @colorizer.ids color
+          end
         end
 
         text = desc_node.css('>p').first

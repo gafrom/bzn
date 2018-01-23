@@ -57,8 +57,11 @@ module Wisell
 
       attrs[:is_available] = offer.attr('available').to_s == 'true'
       attrs[:compare_price] = attrs[:price] * 2
-      attrs[:color] = offer.css('param[name="Цвет"]').first&.text
-      attrs[:color_ids] = @colorizer.ids attrs[:color] if attrs[:color].present?
+      color = offer.css('param[name="Цвет"]').first&.text&.strip
+      if color.present?
+        attrs[:color] = color
+        attrs[:color_ids] = @colorizer.ids color
+      end
       attrs[:url] = url_from offer
 
       attrs

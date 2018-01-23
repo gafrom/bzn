@@ -50,8 +50,11 @@ module Valentina
       desc << size_desc
       attrs[:description] = desc
 
-      attrs[:color] = info.css('>.table_product tbody .rowcolor').first&.text
-      attrs[:color_ids] = @colorizer.ids attrs[:color] if attrs[:color]
+      color = info.css('>.table_product tbody .rowcolor').first&.text&.strip
+      if color.present?
+        attrs[:color] = color
+        attrs[:color_ids] = @colorizer.ids color
+      end
 
       image_div = all_info.css('.product-image').first
       attrs[:images] =
