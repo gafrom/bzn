@@ -78,8 +78,7 @@ module Catalogue::WithTrackedProductUpdates
       abort error
     end
 
-    to_be_hidden.update_all is_available: false
-    @hidden_count = to_be_hidden.size
+    @hidden_count = to_be_hidden.update_all is_available: false
   end
 
   def increment_created(product)
