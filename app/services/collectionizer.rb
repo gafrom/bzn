@@ -7,15 +7,16 @@ module Collectionizer
         collections << label if filter_matches product, params
       end
 
-      collections.join '##'
+      collections.uniq.join '##'
     end
 
     private
 
     def filters
       {
-        'Вязанные платья' => { pattern: 'вязан',  category_id: 3 },
-        'Платья футляр'   => { pattern: 'футляр', category_id: 3 }
+        'Вязанные платья' => { pattern: 'вязан',      category_id: 3 },
+        'Тёплые платья'   => { pattern: 'т[её]плое',  category_id: 3 },
+        'Платья футляр'   => { pattern: 'футляр',     category_id: 3 }
       }
     end
 
