@@ -2,8 +2,6 @@ require 'csv'
 
 module Export
   class CSV < Base
-    include Pushable
-
     def single_file(how_many = nil)
       filename = "#{PATH_TO_FILE}.csv"
 

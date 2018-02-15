@@ -1,7 +1,5 @@
 module Export
   class XLSX < Base
-    include Pushable
-
     attr_accessor :filename
 
     def initialize(how_many = nil)
