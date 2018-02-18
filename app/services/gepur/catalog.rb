@@ -23,14 +23,60 @@ module Gepur
 
       hide_removed_products
 
+      puts "\nUpdating dresses lengths ..."
+      update_dresses_lengths
+
       puts "Created: #{@created_count}\n" \
            "Updated: #{@updated_count}\n" \
            "Skipped: #{@skipped_count}\n" \
            "Hidden: #{@hidden_count}\n" \
+           "Dresses: #{@updated_dresses_count}\n" \
            "Failures: #{@failures_count}"
+
     end
 
     private
+
+    def update_dresses_lengths
+      @updated_dresses_count = 0
+
+      dresses.each do |dress|
+        @pool.run { synchronize_dress_length dress }
+        # synchronize_dress_length dress
+      end
+
+      @pool.await_completion
+    end
+
+    def synchronize_dress_length(dress)
+      attrs = parse_dress URI("#{supplier.host}#{dress.url}")
+      update_product attrs, dress
+      @updated_dresses_count += 1
+    rescue OpenURI::HTTPError, Net::ReadTimeout, Net::OpenTimeout, NotImplementedError => ex
+      log_failure_for dress.url, ex.message
+    end
+
+    def parse_dress(uri)
+      content = open(uri, request_headers).read
+      page = Nokogiri::HTML content
+
+      dress_attributes_from page
+    end
+
+    def dress_attributes_from(page)
+      attrs = {}
+      length = page.css('.content .desctiption__common .d-info')
+                   .find { |node| node.text =~ /длина:/i }&.next_element&.text.to_i
+      return attrs if length == 0
+
+      attrs[:properties] = [Property.from_length(length)]
+
+      attrs
+    end
+
+    def dresses
+      Product.available.where supplier: supplier, category_id: 3
+    end
 
     def store(data, type)
       case type

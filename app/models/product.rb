@@ -41,6 +41,9 @@ class Product < ApplicationRecord
   has_many :colorations, dependent: :destroy
   has_many :colors, through: :colorations
 
+  has_many :propertings, dependent: :destroy
+  has_many :properties, through: :propertings
+
   belongs_to :category
   belongs_to :supplier
 
@@ -106,6 +109,7 @@ class Product < ApplicationRecord
       size,
       joined_colors,
       featured_collections,
+      properties.pluck(:name).join('##'),
       full_url,
       color&.gsub('+', ' ')
     ]
