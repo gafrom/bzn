@@ -1,11 +1,26 @@
-puts 'Creating root category...'
-Category.find_or_create_by title: 'Одежда'
+puts 'Creating root category ...'
+cat_title = 'Одежда'
+cat = Category.find_or_initialize_by title: cat_title
+done = cat.new_record? ? 'Created' : 'Already exists'
+cat.save
+puts "#{done} category id #{cat.id} => #{cat_title}"
 
-colors = %w[Мультиколор Черный Черно-белый Белый Серый Бирюзовый Зеленый Розовый Красный Бежевый Желтый Коричневый Голубой Синий Фиолетовый Золотистый Серебристый Оранжевый]
-
+puts 'Creating colors ...'
+colors = %w[Мультиколор Черный Белый Серый Бирюзовый Зеленый Розовый Красный Бежевый Желтый Коричневый Голубой Синий Фиолетовый Золотистый Серебристый Оранжевый Принт]
 colors.each do |title|
-  color = Color.find_or_create_by title: title
-  puts "Created color id #{color.id} => #{title}"
+  color = Color.find_or_initialize_by title: title
+  done = color.new_record? ? 'Created' : 'Already exists'
+  color.save
+  puts "#{done} color id #{color.id} => #{title}"
 end
 
-puts 'Initial seeding is successfully over.'
+puts 'Creating Product properties ...'
+lengths = %w[Мини Миди Макси]
+lengths.each do |length_name|
+  property = Property.find_or_initialize_by name: length_name
+  done = property.new_record? ? 'Created' : 'Already exists'
+  property.save
+  puts "#{done} property id #{property.id} => #{length_name}"
+end
+
+puts 'Seeding is successfully over.'
