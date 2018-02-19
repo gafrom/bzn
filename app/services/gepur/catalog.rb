@@ -69,6 +69,7 @@ module Gepur
                    .find { |node| node.text =~ /длина:/i }&.next_element&.text.to_i
       return attrs if length == 0
 
+      attrs[:length] = length
       attrs[:properties] = [Property.from_length(length)]
 
       attrs
