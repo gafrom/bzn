@@ -39,7 +39,10 @@ module VeraNova
       raw_length = page.css('.product-info .econom').first
       if raw_length
         length = raw_length.text[/длина[^\d]+(\d+)[^\d]*см/i, 1].to_i
-        attrs[:length] = length if length > 0
+        if length > 0
+          attrs[:length] = length
+          attrs[:properties] = [Property.from_length(length)]
+        end
       end
 
       # no color available at the web site
