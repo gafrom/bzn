@@ -45,6 +45,8 @@ module Catalogue::WithSitemap
   end
 
   def product_fresh?(product, modified_at_as_string)
+    return if ENV['invalidate_all'].present?
+
     updated_at = product.updated_at
     updated_at && updated_at > modified_at_as_string.to_date
   end
