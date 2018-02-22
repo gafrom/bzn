@@ -41,7 +41,7 @@ module VeraNova
         length = raw_length.text[/длина[^\d]+(\d+)[^\d]*см/i, 1].to_i
         if length > 0
           attrs[:length] = length
-          attrs[:properties] = [Property.from_length(length)]
+          attrs[:properties] = attrs[:category_id] == 3 ? [Property.from_length(length)] : []
         end
       end
 
