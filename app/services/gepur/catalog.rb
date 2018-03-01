@@ -76,7 +76,8 @@ module Gepur
     end
 
     def dresses
-      Product.available.where supplier: supplier, category_id: 3
+      Product.available.includes(:properties).where(properties: { id: nil })
+             .where supplier: supplier, category_id: 3
     end
 
     def store(data, type)
