@@ -43,7 +43,15 @@ module Valentina
         label = item.css('.field-label-inline-first').first.text.gsub(' ', ' ').strip
         label = label[0..-2] if label[-1] == ':'
         value = item.xpath('text()').text.strip
-        value << 'см' if label =~ /длина/i && value !~ /см/
+
+        if label =~ /длина/i
+          length = value.to_i
+          if length > 0
+            attrs[:length] = length
+            attrs[:properties] = [Property.from_length(length)] if attrs[:category_id] == 3
+          end
+          value << 'см' if value !~ /см/
+        end
 
         desc << "<p><b>#{label}</b>#{value}</p>"
       end
