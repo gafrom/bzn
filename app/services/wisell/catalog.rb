@@ -46,9 +46,17 @@ module Wisell
       desc = "<p>#{offer.css('description').first.text}</p>"
       temp = offer.css('country_of_origin').first
       desc << "<p><b>Страна производства</b>#{temp.text}</p>" if temp
-      ['Материал', 'Ткань', 'Длина размера'].each do |param|
+      ['Состав', 'Ткани', 'Длина изделия'].each do |param|
         temp = offer.css("param[name='#{param}']").first
-        desc << "<p><b>#{param}</b>#{temp.text}</p>" if temp
+        if temp
+          desc << "<p><b>#{param}</b>#{temp.text}</p>"
+
+          if param == 'Длина изделия' && temp.text.to_i > 73 # just to exclude tops
+            length = temp.text.to_i
+            attrs[:length] = length
+            attrs[:properties] = [Property.from_length(length)] if attrs[:category_id] == 3
+          end
+        end
       end
       attrs[:description] = desc
 
