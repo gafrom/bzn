@@ -16,7 +16,7 @@ class Admin::ProductsController < AdminController
   private
 
   def permit_params
-    params.require(:product).permit(:color, color_ids: [])
+    params.require(:product).permit(:color, :length, property_ids: [], color_ids: [])
   end
 
   def set_resource
@@ -24,9 +24,18 @@ class Admin::ProductsController < AdminController
   end
 
   def set_resources
-    @resources = Product.available
-                        .joins('left join colorations on colorations.product_id = products.id')
-                        .where('colorations.color_id is null').where.not(supplier_id: 10)
-                        .limit(MAX_ITEMS)
+    @resources = case params[:filter_in]
+                 when 'no_color'
+                   Product.available
+                          .joins('left join colorations on colorations.product_id = products.id')
+                          .where('colorations.color_id is null').where.not(supplier_id: 10)
+                          .limit(MAX_ITEMS)
+                 when 'no_length'
+                   Product.available
+                          .where(category_id: 3)
+                          .includes(:propertings)
+                          .where(propertings: { property_id: nil })
+                          .limit(MAX_ITEMS)
+                 end
   end
 end

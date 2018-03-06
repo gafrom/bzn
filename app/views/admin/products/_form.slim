@@ -3,4 +3,7 @@
     li= f.input :color
     li= f.association :colors, input_html: { size: 20, class: 'simple_form__multiple-select-field' }
 
+    li= f.input :length
+    li= f.association :properties, input_html: { size: 3, class: 'simple_form__multiple-select-field' }
+
   = f.button :submit

@@ -11,5 +11,7 @@ h1 Редактирование товара
   ul.images= render collection: @resource.proxied_images.first(5), partial: 'product_image', as: :image_url
 
 .side_bar
-  = link_to 'Назад к товарам', admin_products_path
+  = link_to 'Назад к товарам без цвета', admin_products_path(filter_in: :no_color)
+  br
+  = link_to 'Назад к платьям без длины', admin_products_path(filter_in: :no_length)
   = render 'form', product: @resource

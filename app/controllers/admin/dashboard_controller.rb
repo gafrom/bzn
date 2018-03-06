@@ -5,7 +5,10 @@ class Admin::DashboardController < AdminController
     @num_products_with_no_color =
       Product.available
              .joins('left join colorations on colorations.product_id = products.id')
-             .where('colorations.color_id is null').where.not(supplier_id: 10).count
+             .where('colorations.color_id is null').count
+
+    @num_dresses_with_no_length =
+      Product.available.where(category_id: 3).includes(:propertings).where(propertings: { property_id: nil }).count
 
     @export_files_attrs = Dir["#{Export::PATH_TO_FILE}*"].map do |filename|
       File.open(filename) { |io| { name: filename[/export(.*)\.\w+\Z/,1],
