@@ -23,4 +23,13 @@ lengths.each do |length_name|
   puts "#{done} property id #{property.id} => #{length_name}"
 end
 
+puts 'Creating Product Global properties ...'
+types = %w[Выходная Повседневная Домашняя]
+types.each do |type_name|
+  property = Property.find_or_initialize_by name: type_name
+  done = property.new_record? ? 'Created' : 'Already exists'
+  property.save
+  puts "#{done} property id #{property.id} => #{type_name}"
+end
+
 puts 'Seeding is successfully over.'

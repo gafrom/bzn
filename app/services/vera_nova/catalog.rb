@@ -15,6 +15,10 @@ module VeraNova
                                               password: ENV.fetch('VERANOVA_PASSWORD')
       extract_sitemap_links '/sitemap-product.xml'
       process_links
+
+      update_properties_by urls: { 'Повседневная' => /(povsednevnye|ofisnye)/i,
+                                   'Выходная' => /(naryadnye|vechernie)/i }
+      update_properties_by_title
     end
 
     private

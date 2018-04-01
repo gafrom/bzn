@@ -26,6 +26,8 @@ module Gepur
       puts "\nUpdating dresses lengths ..."
       update_dresses_lengths
 
+      update_properties
+
       puts "Created: #{@created_count}\n" \
            "Updated: #{@updated_count}\n" \
            "Skipped: #{@skipped_count}\n" \
@@ -92,13 +94,17 @@ module Gepur
       #   end
       when :products
         attrs = product_attributes_from data
+
+        product = find_product attrs[:remote_key]
+        product.property_ids += attrs.delete(:additional_property_ids) if product.persisted?
+
         update_product attrs
       end
     end
 
     def product_attributes_from(data)
       attrs = %i[remote_key is_available remote_category_id _ title url description
-                 collection color sizes compare_price price images].zip(data).to_h
+                 collection color sizes compare_price price images subcategory_ids].zip(data).to_h
       attrs.delete :_
 
       categorizer = Categorizer.new remote_id: attrs.delete(:remote_category_id)
@@ -122,6 +128,9 @@ module Gepur
         "<p>#{desc.strip}</p>"
       end.join
       attrs[:description] = description
+
+      subcats_ids = attrs.delete(:subcategory_ids).split(',').reject &:blank?
+      attrs[:additional_property_ids] = Propertizer.categories_to_properties(subcats_ids)
 
       attrs
     end

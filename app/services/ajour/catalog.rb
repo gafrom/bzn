@@ -12,6 +12,7 @@ module Ajour
       end
 
       process_links
+      update_properties
     end
 
     private

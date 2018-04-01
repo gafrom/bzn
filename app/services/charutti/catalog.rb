@@ -14,6 +14,7 @@ module Charutti
       end
 
       process_links
+      update_properties
     end
 
     private

@@ -22,4 +22,12 @@ class Property < ApplicationRecord
     when 118..999 then find_by! name: 'Макси'   # 121, 128, 153, 138
     end
   end
+
+  def self.from_title(title)
+    case title
+    when /(коктейльн|вечерн|выходн)/i then find_by! name: 'Выходная'
+    when /(повседневн|делов)/i        then find_by! name: 'Повседневная'
+    when /(домашн|пижам|ночнуш)/i     then find_by! name: 'Домашняя'
+    end
+  end
 end

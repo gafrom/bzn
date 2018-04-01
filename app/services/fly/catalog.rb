@@ -22,6 +22,7 @@ module Fly
 
       @pool.await_completion
       hide_removed_products
+      update_properties
 
       puts "Created: #{@created_count}\n" \
            "Updated: #{@updated_count}\n" \

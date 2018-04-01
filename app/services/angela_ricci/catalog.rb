@@ -14,6 +14,7 @@ module AngelaRicci
       # can you imagine? - Products do not have individual links :)
       # not even an anchor!
       process_links
+      update_properties
     end
 
     private

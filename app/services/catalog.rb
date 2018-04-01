@@ -3,6 +3,7 @@ require 'csv'
 
 class Catalog
   include Catalogue::WithSupplier
+  include Catalogue::PropertiesUpdateable
 
   STALE_IN = 10.hours
   NUM_THREADS = 16

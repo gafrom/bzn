@@ -16,6 +16,8 @@ module Wisell
       @pool.await_completion
       hide_removed_products
 
+      update_properties
+
       puts "Created: #{@created_count}\n" \
            "Updated: #{@updated_count}\n" \
            "Skipped: #{@skipped_count}\n" \
