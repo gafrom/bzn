@@ -96,7 +96,7 @@ module Gepur
         attrs = product_attributes_from data
 
         product = find_product attrs[:remote_key]
-        product.property_ids += attrs.delete(:additional_property_ids) if product.persisted?
+        product.property_ids += attrs.delete(:property_ids) if product.persisted?
 
         update_product attrs
       end
@@ -130,7 +130,7 @@ module Gepur
       attrs[:description] = description
 
       subcats_ids = attrs.delete(:subcategory_ids).split(',').reject &:blank?
-      attrs[:additional_property_ids] = Propertizer.categories_to_properties(subcats_ids)
+      attrs[:property_ids] = Propertizer.categories_to_properties(subcats_ids)
 
       attrs
     end
