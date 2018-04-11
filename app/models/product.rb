@@ -44,6 +44,10 @@ class Product < ApplicationRecord
   has_many :propertings, dependent: :destroy
   has_many :properties, through: :propertings
 
+  has_one :branding, dependent: :destroy
+  accepts_nested_attributes_for :branding, update_only: true
+  has_one :brand, through: :branding
+
   belongs_to :category
   belongs_to :supplier
 
@@ -105,7 +109,7 @@ class Product < ApplicationRecord
       description.gsub(/\r/, ''),
       (proxied_images.join(' ') if is_first_row),
       slug,
-      supplier.name,
+      brand_or_supplier,
       size,
       joined_colors,
       featured_collections,
@@ -117,6 +121,11 @@ class Product < ApplicationRecord
 
   def featured_collections
     Collectionizer.build self
+  end
+
+  def brand_or_supplier
+    return brand.title if brand
+    supplier.name
   end
 
   def set_slug

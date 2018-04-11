@@ -32,4 +32,13 @@ types.each do |type_name|
   puts "#{done} property id #{property.id} => #{type_name}"
 end
 
+puts 'Creating Rumara brands ...'
+brand_titles = ['0101', '53mission', 'A-Dress', 'A.G', 'ALDi Di', 'Alpama', 'Art Style Leggings', 'Barbarris', 'Bestia', 'Bijourin', 'Classy shoes', 'Daminika', 'DIA', 'FashionUP', 'FLF', 'Garda', 'Ghazel', 'Glem', 'InRed', 'Judi', 'Leo Pride', 'Lipar', 'Lux Look', 'Luzana', 'Majaly', 'MarSe', 'MarSe Man', 'Me&Me', 'Mila Merry', 'Modus', 'Oldisen', 'Olis-Style', 'Palvira', 'RiMari', 'Safika', 'Santali', 'Seventeen', 'Sewel', 'SK-House', 'SL Fashion', 'TALES', 'Tatiana', 'Timbo', 'Velurs', 'Vision Fashion Store', 'Vlavi', 'Zefir']
+brand_titles.each do |title|
+  brand = Brand.find_or_initialize_by title: title
+  done = brand.new_record? ? 'Created' : 'Already exists'
+  brand.save
+  puts "#{done} brand id #{brand.id} => #{title}"
+end
+
 puts 'Seeding is successfully over.'

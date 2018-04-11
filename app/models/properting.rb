@@ -4,6 +4,7 @@
 #
 #  product_id  :integer          not null
 #  property_id :integer          not null
+#  id          :integer          not null, primary key
 #
 # Indexes
 #
