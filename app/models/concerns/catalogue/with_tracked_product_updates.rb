@@ -50,7 +50,7 @@ module Catalogue::WithTrackedProductUpdates
 
     product.assign_attributes attrs
     was_new_record = product.new_record?
-    was_changed    = product.changes if product.changed?
+    was_changed    = product.changes if product.changed? || product.branding&.changed?
 
     saved = product.save
     @processed << product.id
