@@ -14,9 +14,10 @@ module Catalogue::WithLinksScraper
       rel_urls.each do |rel_url|
         abs_url = "#{supplier.host}#{rel_url}"
         puts "Updating links from #{abs_url}... "
+        param_prifix = abs_url.include?('?') ? '&' : '?'
 
         start_page.upto PAGE_LIMIT do |num|
-          paginated_url = "#{abs_url}?page=#{num}"
+          paginated_url = "#{abs_url}#{param_prifix}page=#{num}"
 
           print "Scraping #{paginated_url} ..."
           links = yield Nokogiri::HTML(open(paginated_url).read)
