@@ -43,6 +43,7 @@ module Catalogue
     end
 
     def products_with_no_properties
+      # Product.available.where(supplier: supplier).joins(:propertings).joins(%(LEFT OUTER JOIN "properties" ON "properties"."id" = "propertings"."property_id" AND "properties"."name" IN ('Выходная', 'Повседневная', 'Домашняя'))).where(properties: { id: nil })
       Product.available.where(supplier: supplier).where.not(id: products_with_properties.pluck(:id))
     end
   end
