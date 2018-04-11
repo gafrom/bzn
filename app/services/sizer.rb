@@ -2,17 +2,21 @@ class Sizer
   PERMITTED = (36..66).step(2).to_a.freeze
   COMMON = {
     # common sizes
-    'xs'  => '40',
-    's'   => '42',
-    'm'   => '44',
-    'l'   => '46',
-    'xl'  => '48',
-    '2xl' => '50',
-    'xxl' => '50',
-    '3xl' => '52',
-    '4xl' => '54',
-    '5xl' => '56',
-    '6xl' => '58',
+    'xs'       => '40',
+    's'        => '42',
+    'm'        => '44',
+    'l'        => '46',
+    'xl'       => '48',
+    '2xl'      => '50',
+    'xxl'      => '50',
+    '3xl'      => '52',
+    'xxxl'     => '52',
+    '4xl'      => '54',
+    'xxxxl'    => '54',
+    '5xl'      => '56',
+    'xxxxxl'   => '56',
+    '6xl'      => '58',
+    'xxxxxxl'  => '58',
     'unified'  => 'единый'
   }.freeze
   DASH = '-'.freeze
@@ -26,7 +30,7 @@ class Sizer
 
     subsizes.map do |subsize|
       next subsize if permitted.include? subsize.to_i
-      common[subsize] || raise(NotImplementedError, error_msg(subsize))
+      common[subsize.downcase] || raise(NotImplementedError, error_msg(subsize))
     end.join DASH
   end
 
