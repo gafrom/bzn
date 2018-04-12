@@ -16,16 +16,23 @@ module Export
           product.rows(strategy).each { |row| file << row }
           @results.exported += 1
         rescue NotImplementedError => ex
-          @results.skipped += 1
-          msg = "⚠️  Skipped due to #{ex}"
-          logger.error msg
-          puts msg
+          make_unavailable! product, ex
         end
       end
     end
 
     def products(batch)
       batch.where.not(id: BLACKLISTED)
+    end
+
+    def make_unavailable!(product, exception)
+      @results.skipped += 1
+      product.is_available = false
+      product.save
+
+      msg = "⚠️  Skipped due to #{exception}"
+      logger.error msg
+      puts msg
     end
   end
 end
