@@ -3,6 +3,7 @@ module Export
     attr_accessor :filename
 
     def initialize(how_many = nil)
+      super
       @filename = "#{PATH_TO_FILE}.xlsx"
 
       Xlsxtream::Workbook.open @filename do |xlsx|

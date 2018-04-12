@@ -41,7 +41,8 @@ module Rumara
       return unpermitted_category attrs if attrs[:category_id] == 15
 
       attrs[:price] = info_r.css('span[itemprop="price"]').first.text.to_i
-      attrs[:sizes] = info_r.css('select.size-sel>option').reject { |option| option.attr('value').blank? }
+      attrs[:sizes] = info_r.css('select.size-sel>option')
+                            .reject { |option| option.attr('value').blank? || option.attr('data-nal') == '0' }
                             .map { |option| option.text.strip }
                             .map { |str| str == 'б/р' ? 'unified' : str }
 
