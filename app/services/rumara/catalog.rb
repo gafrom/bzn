@@ -33,6 +33,7 @@ module Rumara
       attrs[:color] = color_a
       attrs[:color_ids] = @colorizer.ids color_a
       brand_a = 'Art Style Leggings' if brand_a == 'ArtStyleLeggings'
+      brand_a = 'Glem' if brand_a == 'Глем'
       brand = Brand.where('lower(title) LIKE ?', brand_a.downcase.tr(' -','_')).first
       return cannot_find_brand(attrs, brand_a) unless brand
       attrs[:branding_attributes] = { brand_id: brand.id }
