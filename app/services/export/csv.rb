@@ -2,11 +2,11 @@ require 'csv'
 
 module Export
   class CSV < Base
-    def single_file(how_many = nil)
+    def single_file(limit: nil, offset: nil)
       filename = "#{PATH_TO_FILE}.csv"
 
       ::CSV.open filename, 'wb' do |file|
-        products = Product.includes(:supplier, :category).available.limit(how_many)
+        products = Product.includes(:supplier, :category).available.limit(limit).offset(offset)
         push_to file, products
       end
 
@@ -24,7 +24,7 @@ module Export
 
     def fix
       ::CSV.open "#{PATH_TO_FILE}_fix.csv", 'wb' do |file|
-        products = Product.includes(:supplier, :category).available.limit(how_many)
+        products = Product.includes(:supplier, :category).available
         push_to file, products, :just_id
       end
 

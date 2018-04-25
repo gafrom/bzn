@@ -1,9 +1,9 @@
 namespace :export do
   task xlsx: :environment do
-    ARGV.each { |a| task a.to_sym do ; end }
+    limit = ENV['limit'].presence || nil
+    offset = ENV['offset'].presence || nil
 
-    limit = ARGV[1] ? ARGV[1].to_i : nil
-    export = Export::XLSX.new limit
+    export = Export::XLSX.new limit: limit, offset: offset
     puts "XLSX file `#{export.filename}` is composed successfully ✅\n" \
          "Results: #{export.results}"
   end
