@@ -39,7 +39,7 @@ module Catalogue::WithLinksScraper
 
   def process_links
     CSV.foreach(path_to_file(:links)).each_slice(SCRAPER_BATCH_SIZE) do |batch_of_links|
-      puts '♻️  Garbage collected and started processing new batch ...'
+      puts '[NEW BATCH] Garbage collected and started processing new batch ...'
       batch_of_links.each do |link|
         url = link.first
         product = Product.find_or_initialize_by remote_key: url, supplier: supplier
