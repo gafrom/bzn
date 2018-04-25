@@ -1,6 +1,5 @@
 module Catalogue::WithLinksScraper
   PAGE_LIMIT = 100
-  SCRAPER_BATCH_SIZE = 500
 
   private
 
@@ -38,20 +37,15 @@ module Catalogue::WithLinksScraper
   end
 
   def process_links
-    CSV.foreach(path_to_file(:links)).each_slice(SCRAPER_BATCH_SIZE) do |batch_of_links|
-      puts '[NEW BATCH] Garbage collected and started processing new batch ...'
-      batch_of_links.each do |link|
-        url = link.first
-        product = Product.find_or_initialize_by remote_key: url, supplier: supplier
+    CSV.foreach path_to_file(:links) do |link|
+      url = link.first
+      product = Product.find_or_initialize_by remote_key: url, supplier: supplier
 
-        @pool.run { synchronize url, product }
-        # synchronize url, product
-      end
-
-      @pool.await_completion
-      GC.start
+      @pool.run { synchronize url, product }
+      # synchronize url, product
     end
 
+    @pool.await_completion
     hide_removed_products
 
     puts "Created: #{@created_count}\n" \
