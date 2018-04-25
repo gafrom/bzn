@@ -5,9 +5,10 @@ module Rumara
     include Catalogue::WithTrackedProductUpdates
 
     NUM_THREADS = 8
+    PARSING_LIMIT = 7000 # pages
 
     def sync
-      scrape_links '/women?limit=1000', start_page: 1 do |page|
+      scrape_links '/women?limit=500', start_page: 1 do |page|
         page.css('#content>.product-grid .product-grid-block>.image>a')
             .map { |a_node| a_node.attr('href').split(supplier.host).last }
       end
@@ -80,6 +81,47 @@ module Rumara
     def unpermitted_category(attrs)
       log_failure_for attrs[:title], "[UNPERMITTED CATEGORY] Category Accessories (id=15)"
       {}
+    end
+
+    def process_links
+      CSV.foreach(path_to_file(:links)).drop(offset).take(limit).each do |link|
+        url = link.first
+        product = Product.find_or_initialize_by remote_key: url, supplier: supplier
+
+        @pool.run { synchronize url, product }
+        # synchronize url, product
+      end
+
+      @pool.await_completion
+
+      if final_execution?
+        processed_earlier = JSON.parse File.read path_to_file(:processed)
+        File.delete path_to_file(:processed)
+        @processed += processed_earlier
+
+        hide_removed_products
+      else
+        processed_as_json = JSON[@processed.tap { |s| s.delete(nil) if s.include?(nil) }.to_a]
+        File.open(path_to_file(:processed), 'w') { |file| file.write processed_as_json }
+      end
+
+      puts "Created: #{@created_count}\n" \
+           "Updated: #{@updated_count}\n" \
+           "Skipped: #{@skipped_count}\n" \
+           "Hidden: #{@hidden_count}\n" \
+           "Failures: #{@failures_count}"
+    end
+
+    def final_execution?
+      File.exists? path_to_file(:processed)
+    end
+
+    def offset
+      final_execution? ? PARSING_LIMIT : 0
+    end
+
+    def limit
+      final_execution? ? 0xffff : PARSING_LIMIT
     end
   end
 end
