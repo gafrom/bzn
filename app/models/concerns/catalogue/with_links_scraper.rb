@@ -1,5 +1,5 @@
 module Catalogue::WithLinksScraper
-  PAGE_LIMIT = 100
+  PAGE_LIMIT = 300
 
   private
 
