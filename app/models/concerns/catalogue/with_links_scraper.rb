@@ -18,10 +18,7 @@ module Catalogue::WithLinksScraper
 
         start_page.upto PAGE_LIMIT do |num|
           paginated_url = "#{abs_url}#{param_prifix}page=#{num}"
-
-          print "Scraping #{paginated_url} ..."
-          links = yield Nokogiri::HTML(open(paginated_url).read)
-          puts ' Done ✅'
+          links = links_from_a_single_page paginated_url
           break if links.blank?
 
           links.each { |url| file << [url] }
@@ -34,6 +31,17 @@ module Catalogue::WithLinksScraper
     end
 
     puts "Finished. Scraped #{pages_count} pages, found #{links_count} links."
+  end
+
+  def links_from_a_single_page(paginated_url)
+    print "Scraping #{paginated_url} ..."
+    links = yield Nokogiri::HTML(open(paginated_url).read)
+    puts ' Done ✅'
+    links
+  rescue OpenURI::HTTPError => error
+    response = error.io
+    puts " Got #{response.status.first} - treating it as the end of the journey. ✅"
+    return nil
   end
 
   def process_links
