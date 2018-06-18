@@ -3,7 +3,7 @@ module Catalogue::WithLinksScraper
 
   private
 
-  def scrape_links(rel_urls = nil, start_page: 0, paginate: true)
+  def scrape_links(rel_urls = nil, start_page: 0, paginate: true, &block)
     return unless obsolete? :links
 
     rel_urls = [rel_urls] unless rel_urls.respond_to? :each
@@ -18,7 +18,7 @@ module Catalogue::WithLinksScraper
 
         start_page.upto PAGE_LIMIT do |num|
           paginated_url = "#{abs_url}#{param_prifix}page=#{num}"
-          links = links_from_a_single_page paginated_url
+          links = links_from_a_single_page paginated_url, block
           break if links.blank?
 
           links.each { |url| file << [url] }
@@ -33,9 +33,9 @@ module Catalogue::WithLinksScraper
     puts "Finished. Scraped #{pages_count} pages, found #{links_count} links."
   end
 
-  def links_from_a_single_page(paginated_url)
+  def links_from_a_single_page(paginated_url, block)
     print "Scraping #{paginated_url} ..."
-    links = yield Nokogiri::HTML(open(paginated_url).read)
+    links = block[Nokogiri::HTML(open(paginated_url).read)]
     puts ' Done ✅'
     links
   rescue OpenURI::HTTPError => error
