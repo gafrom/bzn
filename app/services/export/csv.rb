@@ -3,7 +3,7 @@ require 'csv'
 module Export
   class CSV < Base
     def succinct
-      filename = "#{PATH_TO_FILE}.succinct.csv"
+      filename = "#{PATH_TO_FILE}_succinct.csv"
 
       ::CSV.open filename, 'wb' do |file|
         push_to file, Supplier.last.products.includes(:brand, :category), :succinct
