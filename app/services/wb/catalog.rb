@@ -17,10 +17,10 @@ module Wb
     MIN_PRICE = 'minPrice'.freeze
     COUPON_PRICE = 'couponPrice'.freeze
     PROMO_PRICES_HEADERS = {
-      'Host' => URI.parse(supplier.host).host,
+      'Host' => ENV['KB_HOST'],
       'Accept' => '*/*',
       'Accept-Language' => 'ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3',
-      'Referer' => "#{supplier.host}/catalog/zhenshchinam/odezhda/platya?pagesize=200",
+      'Referer' => "https://#{ENV['KB_HOST']}/catalog/zhenshchinam/odezhda/platya?pagesize=200",
       'X-Requested-With' => 'XMLHttpRequest',
       'Cookie' => '__ver=52291; mobile_client=0; BasketUID=733053e2-6f13-33d0-a129-c397314da31d; __store=507_1699_1733_686; __catalogOptions=Sort:Popular&CountItems:200; ___wbuV1=userId=733c9a49-739a-4225-a9e3-186a4aed33af&firstVisit=06/17/2018 11:31:30&lastVisit=06/17/2018 13:43:30; ___wbs=sessionId=c233cafe-e3fd-463f-b364-fdb3336370b8&startDateTime=06/17/2018 11:34:30; ASP.NET_SessionId=0v0f3oishuag3gomega16klq',
       'DNT' => '1',
