@@ -87,6 +87,9 @@ class Product < ApplicationRecord
       when :just_stock    then [[id, MOCK[:title], MOCK[:price], stock]]
       when :just_id       then [[id, title, category.title]]
       when :just_supplier then [[id, title, supplier.name]]
+      when :succinct
+        [[remote_id, title, supplier.name, category.title, sizes, brand.title,
+          original_price, discount_price, coupon_price, created_at, updated_at]]
       when :full
         is_first_row = true
         sizes.russian.map do |size|

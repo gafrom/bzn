@@ -7,8 +7,7 @@ Rails.application.routes.draw do
     root 'dashboard#home'
 
     resources :products, only: [:index, :show, :edit, :update]
-  end
 
-  get 'export/mapping', to: 'export#mapping', as: :export_mapping
-  get 'export/catalog(/:file_suffix)', to: 'export#catalog', as: :export_catalog
+    get 'export/catalog(/:file_suffix)', to: 'export#catalog', as: :export_catalog
+  end
 end

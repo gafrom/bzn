@@ -2,6 +2,16 @@ require 'csv'
 
 module Export
   class CSV < Base
+    def succinct
+      filename = "#{PATH_TO_FILE}.succinct.csv"
+
+      ::CSV.open filename, 'wb' do |file|
+        push_to file, Supplier.last.products.includes(:brand, :category), :succinct
+      end
+
+      filename
+    end
+
     def single_file(limit: nil, offset: nil)
       filename = "#{PATH_TO_FILE}.csv"
 

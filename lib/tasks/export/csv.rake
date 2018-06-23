@@ -16,5 +16,12 @@ namespace :export do
       files.map! { |file| "#{file} ✅" }
       puts "The following CSV files are composed successfully:\n#{files.join("\n")}"
     end
+    task wb: :environment do
+      file = Export::CSV.new.succinct
+
+      message = "CSV file `#{file}` is composed successfully ✅"
+      Rails.logger.info message
+      puts message
+    end
   end
 end
