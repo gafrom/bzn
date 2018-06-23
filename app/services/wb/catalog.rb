@@ -29,7 +29,9 @@ module Wb
       'Cache-Control' => 'no-cache'
     }.freeze
 
-    def initialize(*_)
+    def initialize(*args)
+      super
+
       @promo_prices_conn = Faraday.new(url: "#{supplier.host}/content/cardspromo") do |conn|
         conn.headers['Content-Type'] = 'application/x-www-form-urlencoded'
         conn.headers.merge! PROMO_PRICES_HEADERS
@@ -37,8 +39,6 @@ module Wb
       end
 
       @processed_count = 0
-
-      super
     end
 
     def sync
