@@ -2,24 +2,29 @@
 #
 # Table name: products
 #
-#  id            :integer          not null, primary key
-#  title         :string
-#  is_available  :boolean
-#  price         :integer
-#  compare_price :integer
-#  category_id   :integer
-#  supplier_id   :integer
-#  url           :string
-#  description   :text
-#  slug          :string
-#  collection    :string
-#  color         :string
-#  sizes         :string           default([]), is an Array
-#  images        :string           default([]), is an Array
-#  created_at    :datetime         not null
-#  updated_at    :datetime         not null
-#  remote_key    :string
-#  length        :integer
+#  id             :integer          not null, primary key
+#  title          :string
+#  is_available   :boolean
+#  price          :integer
+#  compare_price  :integer
+#  category_id    :integer
+#  supplier_id    :integer
+#  url            :string
+#  description    :text
+#  slug           :string
+#  collection     :string
+#  color          :string
+#  sizes          :string           default([]), is an Array
+#  images         :string           default([]), is an Array
+#  created_at     :datetime         not null
+#  updated_at     :datetime         not null
+#  remote_key     :string
+#  length         :integer
+#  remote_id      :integer
+#  original_price :integer
+#  discount_price :integer
+#  coupon_price   :integer
+#  sold_count     :integer
 #
 # Indexes
 #
