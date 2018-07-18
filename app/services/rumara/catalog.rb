@@ -8,7 +8,7 @@ module Rumara
     PARSING_LIMIT = 7000 # pages
 
     def sync
-      scrape_links '/women?limit=1000', start_page: 1 do |page|
+      scrape_links '/women?limit=1000' do |page|
         page.css('#content>.product-grid .product-grid-block>.image>a')
             .map { |a_node| a_node.attr('href').split(supplier.host).last }
       end

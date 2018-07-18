@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180623083213) do
+ActiveRecord::Schema.define(version: 20180718174756) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -89,6 +89,13 @@ ActiveRecord::Schema.define(version: 20180623083213) do
     t.bigint "property_id", null: false
     t.index ["product_id", "property_id"], name: "index_propertings_on_product_id_and_property_id"
     t.index ["property_id", "product_id"], name: "index_propertings_on_property_id_and_product_id"
+  end
+
+  create_table "remote_data", force: :cascade do |t|
+    t.integer "remote_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["remote_id"], name: "index_remote_data_on_remote_id"
   end
 
   create_table "suppliers", force: :cascade do |t|

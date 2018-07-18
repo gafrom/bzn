@@ -5,6 +5,7 @@ module AngelaRicci
     include Catalogue::WithTrackedProductUpdates
 
     def sync
+      # TODO make sure start_page is correct
       scrape_links paginate: false do |page|
         page.css('.content .catalog_item>a:first-child')
             .map { |a_node| a_node.attr('href') }

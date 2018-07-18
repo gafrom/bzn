@@ -7,6 +7,7 @@ module Valentina
     NUM_THREADS = 8
 
     def sync
+      # TODO make sure start_page is correct
       scrape_links '/catalog' do |page|
         page.css('.view-content .views-field:first-child>.field-content>a:first-child')
             .map { |a_node| a_node.attr('href') }

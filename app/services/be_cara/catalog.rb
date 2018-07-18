@@ -17,6 +17,7 @@ module BeCara
     def sync
       update_file price: '/price'
 
+      # TODO make sure start_page is correct
       scrape_links LINKS_URLS do |page|
         page.css('.view-content .field-content>a:first-child')
             .map { |a_node| a_node.attr('href') }

@@ -3,8 +3,8 @@ module Catalogue::WithLinksScraper
 
   private
 
-  def scrape_links(rel_urls = nil, start_page: 0, paginate: true, &block)
-    return unless obsolete? :links
+  def scrape_links(rel_urls = nil, to: :disk, start_page: 1, paginate: true, &block)
+    return if to == :disk && !obsolete?(:links)
 
     rel_urls = [rel_urls] unless rel_urls.respond_to? :each
 
@@ -21,9 +21,14 @@ module Catalogue::WithLinksScraper
           links = links_from_a_single_page paginated_url, block
           break if links.blank?
 
-          links.each { |url| file << [url] }
-          links_count += links.size
-          pages_count += 1
+          case to
+          when :nowhere then next
+          when :db then next
+          when :disk
+            links.each { |url| file << [url] }
+            links_count += links.size
+            pages_count += 1
+          end
 
           break unless paginate
         end

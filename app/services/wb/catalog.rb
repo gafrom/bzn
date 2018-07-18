@@ -42,7 +42,7 @@ module Wb
     end
 
     def sync
-      scrape_links '/catalog/zhenshchinam/odezhda/platya?pagesize=200', start_page: 1 do |page|
+      scrape_links '/catalog/zhenshchinam/odezhda/platya?pagesize=200&brand=1110' do |page|
         products_attrs = {}
 
         add_ids_and_titles_and_category_to! products_attrs, page
@@ -59,7 +59,44 @@ module Wb
       spit_results
     end
 
+    def sync_links_from(urls, till_first_existing:)
+      scrape_links send(urls), to: :nowhere do |page|
+        page.css('#catalog-content>.catalog_main_table>.dtList').to_a.each do |div|
+          datum = RemoteDatum.find_or_initialize_by remote_id: div.attr('data-catalogercod1s').to_i
+
+          if datum.new_record?
+            datum.save
+            @created_count += 1
+          else
+            !till_first_existing || break
+            @skipped_count += 1
+          end
+
+          @processed_count += 1
+        end
+      end
+    ensure
+      spit_results
+    end
+
     private
+
+    def latest_products_url
+      '/catalog/zhenshchinam/odezhda/platya?pagesize=200&brand=21028&sort=newly'
+    end
+
+    def complete_urls_set
+      %w[
+        /catalog/zhenshchinam/odezhda/platya-maksi
+        /catalog/zhenshchinam/odezhda/platya-midi?sort=priceup
+        /catalog/zhenshchinam/odezhda/platya-midi?sort=pricedown
+        /catalog/zhenshchinam/odezhda/platya-mini
+        /catalog/zhenshchinam/odezhda/svadebnye-platya
+        /catalog/zhenshchinam/odezhda/dzhnsovye-platya
+        /catalog/zhenshchinam/odezhda/sarafany
+        /catalog/zhenshchinam/odezhda/platya-s-tonkimi-bretelkami
+      ].map { |url| url << "#{url.include?('?') ? '&' : '?'}pagesize=200" }
+    end
 
     def save(products_attrs)
       @processed_count += products_attrs.each do |remote_id, attrs|
@@ -76,13 +113,13 @@ module Wb
       page.css('#catalog-content>.catalog_main_table>.dtList').each do |div|
         brand_title = div.css('a .brand-name>text()').first.text.strip
         if brand_title.blank?
-          @logger.error '[SCRAPE_IDS_AND_TITLES_FROM] No brand title is provided - skipping'
+          @logger.error '[ADD_IDS_AND_TITLES_AND_CATEGORY_TO] No brand title is provided - skipping'
           next
         end
 
         title = div.css('a .goods-name').first.text.strip
         if title.blank?
-          @logger.error '[SCRAPE_IDS_AND_TITLES_FROM] No product title is provided - skipping'
+          @logger.error '[ADD_IDS_AND_TITLES_AND_CATEGORY_TO] No product title is provided - skipping'
           next
         end
 
@@ -103,7 +140,7 @@ module Wb
     def brand_from(title)
       brand = Brand.find_or_initialize_by title: title
       if brand.new_record?
-        @logger.info "[SCRAPE_IDS_AND_TITLES_FROM] Create brand '#{title}'"
+        @logger.info "[ADD_IDS_AND_TITLES_AND_CATEGORY_TO] Create brand '#{title}'"
       end
       brand.save
       brand
