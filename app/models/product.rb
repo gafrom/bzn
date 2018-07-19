@@ -25,6 +25,7 @@
 #  discount_price :integer
 #  coupon_price   :integer
 #  sold_count     :integer
+#  rating         :integer
 #
 # Indexes
 #
@@ -89,7 +90,7 @@ class Product < ApplicationRecord
       when :just_supplier then [[id, title, supplier.name]]
       when :succinct
         [[remote_id, title, supplier.name, category.title, sizes, brand.title,
-          original_price, discount_price, coupon_price, created_at, updated_at]]
+          original_price, discount_price, coupon_price, rating, color, created_at, updated_at]]
       when :full
         is_first_row = true
         sizes.russian.map do |size|

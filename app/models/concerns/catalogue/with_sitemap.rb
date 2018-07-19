@@ -27,7 +27,7 @@ module Catalogue::WithSitemap
 
       if product_fresh? product, modified_at
         @processed << product.id
-        next skip url
+        next skip product
       end
 
       @pool.run { synchronize url, product }

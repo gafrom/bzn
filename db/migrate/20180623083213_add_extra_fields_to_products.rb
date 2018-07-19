@@ -5,5 +5,6 @@ class AddExtraFieldsToProducts < ActiveRecord::Migration[5.1]
     add_column :products, :discount_price, :integer
     add_column :products, :coupon_price, :integer
     add_column :products, :sold_count, :integer
+    add_column :products, :rating, :integer
   end
 end

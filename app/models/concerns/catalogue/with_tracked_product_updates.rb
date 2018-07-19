@@ -59,7 +59,7 @@ module Catalogue::WithTrackedProductUpdates
 
     return increment_created product if was_new_record
     return increment_updated product, was_changed if was_changed
-    skip product.url
+    skip product
   rescue NoMethodError, NotImplementedError => ex
     log_failure_for (product.url || attrs[:title]), ex.message
   end
@@ -91,8 +91,9 @@ module Catalogue::WithTrackedProductUpdates
     @updated_count += 1
   end
 
-  def skip(url)
-    log_success_for url, :skipped
+  def skip(product)
+    product.touch
+    log_success_for product.url, :skipped
     @skipped_count += 1
   end
 end

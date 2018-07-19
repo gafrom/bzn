@@ -73,6 +73,7 @@ ActiveRecord::Schema.define(version: 20180718174756) do
     t.integer "discount_price"
     t.integer "coupon_price"
     t.integer "sold_count"
+    t.integer "rating"
     t.index ["category_id"], name: "index_products_on_category_id"
     t.index ["supplier_id"], name: "index_products_on_supplier_id"
   end

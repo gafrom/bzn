@@ -3,8 +3,14 @@ module Catalogue::WithLinksScraper
 
   private
 
-  def scrape_links(rel_urls = nil, to: :disk, start_page: 1, paginate: true, &block)
+  def scrape_links(rel_urls = nil, to: :disk, format: :html, start_page: 1, paginate: true, &block)
     return if to == :disk && !obsolete?(:links)
+
+    conn = format == :json && Faraday.new(url: supplier.host) do |conn|
+      conn.headers.merge! self.class::INDEX_PAGE_HEADERS
+      # conn.response :logger
+      conn.adapter  :net_http
+    end
 
     rel_urls = [rel_urls] unless rel_urls.respond_to? :each
 
@@ -17,8 +23,15 @@ module Catalogue::WithLinksScraper
         param_prifix = abs_url.include?('?') ? '&' : '?'
 
         start_page.upto PAGE_LIMIT do |num|
-          paginated_url = "#{abs_url}#{param_prifix}page=#{num}"
-          links = links_from_a_single_page paginated_url, block
+
+          links = case format
+                  when :html
+                    links_from_a_single_page "#{abs_url}#{param_prifix}page=#{num}", block
+                  when :json
+                    ref_url = num > 1 ? "#{abs_url}#{param_prifix}page=#{num - 1}" : supplier.host
+                    links_from_json "#{rel_url}#{param_prifix}page=#{num}", ref_url, conn, block
+                  end
+
           break if links.blank?
 
           case to
@@ -36,6 +49,23 @@ module Catalogue::WithLinksScraper
     end
 
     puts "Finished. Scraped #{pages_count} pages, found #{links_count} links."
+  end
+
+  def links_from_json(rel_url, ref_url, conn, block)
+    print "Scraping #{rel_url} as JSON ..."
+    response = conn.post rel_url, nil, Referer: ref_url
+
+    if response.success?
+      block[JSON.parse(response.body)]
+      puts ' Done ✅'
+      true
+    else
+      puts " Got #{response.status} - treating it as the end of the journey. ✅"
+      nil
+    end
+  rescue JSON::ParserError => error
+    puts " Got wrong JSON (#{error.message}) - treating it as the end of the journey. ✅"
+    return nil
   end
 
   def links_from_a_single_page(paginated_url, block)
