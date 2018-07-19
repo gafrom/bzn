@@ -82,7 +82,7 @@ module Wb
     private
 
     def latest_products_url
-      '/catalog/zhenshchinam/odezhda/platya?pagesize=200&brand=21028&sort=newly'
+      '/catalog/zhenshchinam/odezhda/platya?pagesize=200&sort=newly'
     end
 
     def complete_urls_set
