@@ -29,10 +29,14 @@
 # To learn more, please read the Rails Internationalization guide
 # available at http://guides.rubyonrails.org/i18n.html.
 
-en:
+ru:
   hello: "Hello world"
   updated_success: Товар успешно обновлён
 
   products: "Товары (%{count})"
 
   back_to_admin_home: Назад на Главную панель
+
+  time:
+    formats:
+      succinct: "%d %B, %A, %H:%M %Z"
