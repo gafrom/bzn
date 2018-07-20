@@ -57,14 +57,16 @@ module Wb
       @started_at = Time.zone.now
     end
 
-    def sync
-      scrape_links complete_urls_set, to: :nowhere, format: :json do |json|
+    def sync(only_new: false)
+      urls = only_new ? latest_products_url : complete_urls_set
+
+      scrape_links urls, to: :nowhere, format: :json do |json|
         products_attrs = {}
 
         add_primary_stuff_to! products_attrs, json
         add_coupon_prices_to! products_attrs
 
-        save products_attrs
+        save(products_attrs, only_new) || break
       end
     ensure
       spit_results
@@ -91,23 +93,6 @@ module Wb
     end
 
     private
-
-    def latest_products_url
-      '/catalog/zhenshchinam/odezhda/platya?pagesize=200&sort=newly'
-    end
-
-    def complete_urls_set
-      %w[
-        /catalog/zhenshchinam/odezhda/platya-maksi
-        /catalog/zhenshchinam/odezhda/platya-midi?sort=priceup
-        /catalog/zhenshchinam/odezhda/platya-midi?sort=pricedown
-        /catalog/zhenshchinam/odezhda/platya-mini
-        /catalog/zhenshchinam/odezhda/svadebnye-platya
-        /catalog/zhenshchinam/odezhda/dzhnsovye-platya
-        /catalog/zhenshchinam/odezhda/sarafany
-        /catalog/zhenshchinam/odezhda/platya-s-tonkimi-bretelkami
-      ].map { |url| url << "#{url.include?('?') ? '&' : '?'}pagesize=200" }
-    end
 
     def add_primary_stuff_to!(hsh, json)
       json['products'].each do |attrs|
@@ -172,15 +157,20 @@ module Wb
       end
     end
 
-    def save(products_attrs)
-      @processed_count += products_attrs.each do |remote_id, attrs|
+    def save(products_attrs, only_new = false)
+      all_were_new = products_attrs.each do |remote_id, attrs|
         product = Product.find_or_initialize_by remote_id: remote_id, supplier: supplier
+        break false if only_new && product.persisted?
+
         update_product attrs, product
-      end.size
+        @processed_count += 1
+      end
 
       message = "∑  = #{@processed_count} " # + Done ✅
       @logger.info message
       puts message
+
+      all_were_new
     end
 
     def fetch_json(payload:)
@@ -200,6 +190,23 @@ module Wb
       log_failure_for url, ex.message
     ensure
       @processed << product.id if product
+    end
+
+    def latest_products_url
+      '/catalog/zhenshchinam/odezhda/platya?pagesize=200&sort=newly'
+    end
+
+    def complete_urls_set
+      %w[
+        /catalog/zhenshchinam/odezhda/platya-maksi
+        /catalog/zhenshchinam/odezhda/platya-midi?sort=priceup
+        /catalog/zhenshchinam/odezhda/platya-midi?sort=pricedown
+        /catalog/zhenshchinam/odezhda/platya-mini
+        /catalog/zhenshchinam/odezhda/svadebnye-platya
+        /catalog/zhenshchinam/odezhda/dzhnsovye-platya
+        /catalog/zhenshchinam/odezhda/sarafany
+        /catalog/zhenshchinam/odezhda/platya-s-tonkimi-bretelkami
+      ].map { |url| url << "#{url.include?('?') ? '&' : '?'}pagesize=200" }
     end
 
     def spit_results
