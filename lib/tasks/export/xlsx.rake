@@ -7,4 +7,13 @@ namespace :export do
     puts "XLSX file `#{export.filename}` is composed successfully ✅\n" \
          "Results: #{export.results}"
   end
+  namespace :xlsx do
+    task wb: :environment do
+      file = Export::XLSX.new.succinct
+
+      message = "XLSX file `#{file}` is composed successfully ✅"
+      Rails.logger.info message
+      puts message
+    end
+  end
 end

@@ -4,19 +4,21 @@ module Export
   class CSV < Base
     def succinct
       filename = "#{PATH_TO_FILE}_succinct.csv"
-
       ::CSV.open filename, 'wb' do |file|
-        push_to file, Supplier.last.products.includes(:brand, :category), :succinct
+        file << Product.headers(:succinct)
+        products = Product.includes(:brand, :category, :supplier).where(supplier_id: 12)
+                          .order(created_at: :desc).limit(@limit).offset(@offset)
+        push_to file, products, :succinct
       end
 
       filename
     end
 
-    def single_file(limit: nil, offset: nil)
+    def single_file
       filename = "#{PATH_TO_FILE}.csv"
 
       ::CSV.open filename, 'wb' do |file|
-        products = Product.includes(:supplier, :category).available.limit(limit).offset(offset)
+        products = Product.includes(:supplier, :category).available.limit(@limit).offset(@offset)
         push_to file, products
       end
 

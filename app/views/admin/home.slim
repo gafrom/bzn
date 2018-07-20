@@ -2,7 +2,13 @@ h1= "Welcome, #{@user.name}"
 
 p
   | Total available products
-  strong=< number_with_delimiter @total_available_products, delimiter: ' '
+  strong=< number_with_delimiter @products_count, delimiter: ' '
+
+p
+  | Last update
+  strong=< l @latest_updated_product.updated_at, format: :short
 
 .something
-= link_to '🌭 Download CSV', admin_export_catalog_path('succinct'), target: :_blank
+= link_to '🌭 Download CSV', admin_export_catalog_path('succinct.csv'), target: :_blank
+br
+= link_to '🌭 Download XLSX', admin_export_catalog_path('succinct.xlsx'), target: :_blank

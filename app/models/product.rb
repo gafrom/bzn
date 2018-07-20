@@ -63,6 +63,18 @@ class Product < ApplicationRecord
   scope :available, -> { where is_available: true }
   scope :unavailable, -> { where is_available: false }
 
+
+  def self.headers(strategy)
+    case strategy
+    when :just_stock    then %w[id title price stock]
+    when :just_id       then %w[id title category]
+    when :just_supplier then %w[id title supplier]
+    when :succinct
+      %w[remote_id title supplier category sizes brand
+        original_price discount_price coupon_price rating color created_at updated_at]
+    end
+  end
+
   def stock
     is_available ? 20 : 0
   end

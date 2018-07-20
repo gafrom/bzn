@@ -2,8 +2,10 @@ module Export
   class Base
     attr_accessor :filenames, :logger, :results
 
-    def initialize(*_)
+    def initialize(limit: nil, offset: nil)
       @filenames = []
+      @limit = limit
+      @offset = offset
       @logger = Rails.logger
       @results = Struct.new('Result', :exported, :skipped).new 0, 0
     end
