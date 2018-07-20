@@ -12,6 +12,7 @@ gem 'eye', require: false
 gem 'dotenv-rails', require: 'dotenv/rails-now'
 gem 'rails', '~> 5.1.4'
 gem 'devise'
+gem 'whenever', require: false
 
 # Frontend stuff
 gem 'slim-rails'
