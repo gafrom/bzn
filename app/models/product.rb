@@ -30,6 +30,7 @@
 # Indexes
 #
 #  index_products_on_category_id  (category_id)
+#  index_products_on_remote_id    (remote_id)
 #  index_products_on_supplier_id  (supplier_id)
 #
 # Foreign Keys
