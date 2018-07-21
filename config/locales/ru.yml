@@ -40,3 +40,4 @@ ru:
   time:
     formats:
       succinct: "%d %B, %A, %H:%M %Z"
+      xlsx: "%d %B %H-%M %Z"

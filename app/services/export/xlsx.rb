@@ -19,12 +19,13 @@ module Export
       @filename = "#{PATH_TO_FILE}_succinct.xlsx"
 
       Xlsxtream::Workbook.open filename do |xlsx|
-        xlsx.write_worksheet Time.zone.now.to_s do |sheet|
+        xlsx.write_worksheet I18n.l(Time.now, format: :xlsx) do |sheet|
           sheet << Product.headers(:succinct)
 
           products = Product.includes(:supplier, :category, :brand)
                             .where(supplier_id: 12)
                             .order(created_at: :desc)
+
           push_each_to sheet, products, :succinct
         end
       end
