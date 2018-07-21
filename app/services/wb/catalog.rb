@@ -26,7 +26,6 @@ module Wb
       'Accept' => '*/*',
       'Accept-Language' => 'ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3',
       'X-Requested-With' => 'XMLHttpRequest',
-      'Cookie' => ENV['KB_COOKIE'],
       'DNT' => '1',
       'Connection' => 'keep-alive',
       'Pragma' => 'no-cache',
@@ -37,7 +36,6 @@ module Wb
       'Accept' => 'application/json, text/javascript, */*; q=0.01',
       'Accept-Language' => 'ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3',
       'X-Requested-With' => 'XMLHttpRequest',
-      'Cookie' => ENV['KB_COOKIE'],
       'DNT' => '1',
       'Content-Type' => 'application/json; charset=UTF-8',
       'Connection' => 'keep-alive',
@@ -105,7 +103,7 @@ module Wb
                     when title.blank? then 'product title'
                     when brand_title.blank? then 'brand title'
                     end
-          @logger.error "[ADD_IDS_AND_TITLES_AND_CATEGORY_TO] No #{missing} is provided - skipping"
+          @logger.error "[ADD_PRIMARY_STUFF_TO] No #{missing} is provided - skipping"
           next
         end
 
@@ -138,7 +136,7 @@ module Wb
     def brand_from(title)
       brand = Brand.find_or_initialize_by title: title
       if brand.new_record?
-        @logger.info "[ADD_IDS_AND_TITLES_AND_CATEGORY_TO] Create brand '#{title}'"
+        @logger.info "[ADD_PRIMARY_STUFF_TO:BRAND_FROM] Create brand '#{title}'"
       end
       brand.save
       brand
