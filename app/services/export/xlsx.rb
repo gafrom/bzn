@@ -24,8 +24,8 @@ module Export
 
           products = Product.includes(:supplier, :category, :brand)
                             .where(supplier_id: 12)
-                            .order(created_at: :desc).limit(@limit).offset(@offset)
-          push_to sheet, products, :succinct
+                            .order(created_at: :desc)
+          push_each_to sheet, products, :succinct
         end
       end
 

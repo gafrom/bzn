@@ -8,7 +8,7 @@ module Export
         file << Product.headers(:succinct)
         products = Product.includes(:brand, :category, :supplier).where(supplier_id: 12)
                           .order(created_at: :desc).limit(@limit).offset(@offset)
-        push_to file, products, :succinct
+        push_each_to file, products, :succinct
       end
 
       filename

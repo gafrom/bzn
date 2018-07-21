@@ -13,7 +13,7 @@ module Export
     private
 
     def push_to(file, batch, strategy = :full)
-      products(batch).each do |product|
+      products_in(batch).each do |product|
         begin
           product.rows(strategy).each { |row| file << row }
           @results.exported += 1
@@ -23,7 +23,14 @@ module Export
       end
     end
 
-    def products(batch)
+    def push_each_to(file, products, strategy = :full)
+      products.find_each do |product|
+        product.rows(strategy).each { |row| file << row }
+        @results.exported += 1
+      end
+    end
+
+    def products_in(batch)
       batch.where.not(id: BLACKLISTED)
     end
 
