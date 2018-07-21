@@ -12,7 +12,7 @@ class Admin::ExportController < AdminController
 
   def update_file
     return unless obsolete?
-    Rake::Task["export:#{params[:format]}:wb"].invoke
+    Rake::Task["export:#{params[:format]}:wb"].execute
   end
 
   def mime_type

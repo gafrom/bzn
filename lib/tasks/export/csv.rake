@@ -4,7 +4,7 @@ namespace :export do
 
     limit = ARGV[1] ? ARGV[1].to_i : nil
     file = Export::CSV.new.single_file limit
-    puts "CSV file `#{file}` is composed successfully ✅"
+    Rails.logger.info "CSV file `#{file}` is composed successfully ✅"
   end
   namespace :csv do
     task batch: :environment do
@@ -14,14 +14,12 @@ namespace :export do
       files = Export::CSV.new.in_batches batch_size
 
       files.map! { |file| "#{file} ✅" }
-      puts "The following CSV files are composed successfully:\n#{files.join("\n")}"
+      Rails.logger.info "The following CSV files are composed successfully:\n#{files.join("\n")}"
     end
     task wb: :environment do
       file = Export::CSV.new.succinct
 
-      message = "CSV file `#{file}` is composed successfully ✅"
-      Rails.logger.info message
-      puts message
+      Rails.logger.info "CSV file `#{file}` is composed successfully ✅"
     end
   end
 end

@@ -1,0 +1,1 @@
+Numeric.include Extensions::DurationToNumeric

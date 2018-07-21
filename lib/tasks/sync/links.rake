@@ -5,7 +5,7 @@ namespace :sync do
     supplier_module::Catalog.new(ENV['host'])
                             .sync_links_from :complete_urls_set, till_first_existing: false
 
-    puts "Scraped all links and stored them to DB ✅"
+    Rails.logger.info "Scraped all links and stored them to DB ✅"
   end
 
   desc 'Scrape over recently added links and store them into DB'
@@ -14,7 +14,7 @@ namespace :sync do
     supplier_module::Catalog.new(ENV['host'])
                             .sync_links_from :latest_products_url, till_first_existing: true
 
-    puts "Scraped latest links, stored them to DB and went home ✅"
+    Rails.logger.info "Scraped latest links, stored them to DB and went home ✅"
   end
 
   desc 'Update only latest products on local machine'

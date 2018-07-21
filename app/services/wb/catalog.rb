@@ -166,7 +166,6 @@ module Wb
 
       message = "∑  = #{@processed_count} " # + Done ✅
       @logger.info message
-      puts message
 
       all_were_new
     end
@@ -216,7 +215,6 @@ module Wb
                 "Hidden: #{@hidden_count}\n" \
                 "Failures: #{@failures_count}"
       @logger.info message
-      puts message
     end
   end
 end
