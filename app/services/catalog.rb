@@ -31,14 +31,14 @@ class Catalog
   private
 
   def log_failure_for(url, error)
-    msg = "Processing #{url} ... Failed: #{error}\n"
+    msg = "Processing #{url} ... Failed: #{error}"
     @failures_count += 1
     @logger.error msg
   end
 
   def log_success_for(url, action = :done, etc = nil)
     etc = ": #{etc}" if etc
-    @logger.debug "Processing #{url} ... #{action.to_s.capitalize}#{etc}\n"
+    @logger.debug "Processing #{url} ... #{action.to_s.capitalize}#{etc}"
   end
 
   def request_headers
