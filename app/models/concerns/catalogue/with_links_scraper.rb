@@ -48,35 +48,33 @@ module Catalogue::WithLinksScraper
       end
     end
 
-    puts "Finished. Scraped #{pages_count} pages, found #{links_count} links."
+    @logger.info "Finished. Scraped #{pages_count} pages, found #{links_count} links."
   end
 
   def links_from_json(rel_url, ref_url, conn, block)
-    print "Scraping #{rel_url} as JSON ..."
+    @logger.info "Scraping JSON from #{rel_url} ..."
     response = conn.post rel_url, nil, Referer: ref_url
 
     if response.success?
       block[JSON.parse(response.body)]
-      puts ' Done ✅'
       true
     else
       puts " Got #{response.status} - treating it as the end of the journey. ✅"
       nil
     end
   rescue JSON::ParserError => error
-    puts " Got wrong JSON (#{error.message}) - treating it as the end of the journey. ✅"
-    return nil
+    @logger.info " Got wrong JSON (#{error.message}) - treating it as the end of the journey. ✅"
+    nil
   end
 
   def links_from_a_single_page(paginated_url, block)
-    print "Scraping #{paginated_url} ..."
+    @logger.info "Scraping #{paginated_url} ..."
     links = block[Nokogiri::HTML(open(paginated_url).read)]
-    puts ' Done ✅'
     links
   rescue OpenURI::HTTPError => error
     response = error.io
-    puts " Got #{response.status.first} - treating it as the end of the journey. ✅"
-    return nil
+    @logger.info " Got #{response.status.first} - treating it as the end of the journey. ✅"
+    nil
   end
 
   def process_links
@@ -91,10 +89,10 @@ module Catalogue::WithLinksScraper
     @pool.await_completion
     hide_removed_products
 
-    puts "Created: #{@created_count}\n" \
-         "Updated: #{@updated_count}\n" \
-         "Skipped: #{@skipped_count}\n" \
-         "Hidden: #{@hidden_count}\n" \
-         "Failures: #{@failures_count}"
+    @logger.info "Created: #{@created_count}\n" \
+                 "Updated: #{@updated_count}\n" \
+                 "Skipped: #{@skipped_count}\n" \
+                 "Hidden: #{@hidden_count}\n" \
+                 "Failures: #{@failures_count}"
   end
 end

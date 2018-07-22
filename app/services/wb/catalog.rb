@@ -171,12 +171,11 @@ module Wb
     end
 
     def fetch_json(payload:)
-      print "POST [JSON] to #{@promo_prices_conn.url_prefix} ..."
+      @logger.info "POST [JSON] to #{@promo_prices_conn.url_prefix} ..."
 
       response = @promo_prices_conn.post do |req|
         req.body = URI.encode_www_form(payload)
       end
-      puts ' Done ✅'
 
       response.body if response.success?
     end
