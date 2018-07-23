@@ -19,7 +19,7 @@ module Catalogue::WithLinksScraper
     CSV.open path_to_file(:links), 'wb' do |file|
       rel_urls.each do |rel_url|
         abs_url = "#{supplier.host}#{rel_url}"
-        puts "Updating links from #{abs_url}... "
+        @logger.info "Checking out #{abs_url}... "
         param_prifix = abs_url.include?('?') ? '&' : '?'
 
         start_page.upto PAGE_LIMIT do |num|
