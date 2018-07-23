@@ -59,11 +59,11 @@ module Catalogue::WithLinksScraper
       block[JSON.parse(response.body)]
       true
     else
-      puts " Got #{response.status} - treating it as the end of the journey. ✅"
+      @logger.info "Got #{response.status} - treating it as the end of the journey. ✅"
       nil
     end
   rescue JSON::ParserError => error
-    @logger.info " Got wrong JSON (#{error.message}) - treating it as the end of the journey. ✅"
+    @logger.info "Got wrong JSON (#{error.message}) - treating it as the end of the journey. ✅"
     nil
   end
 
