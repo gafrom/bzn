@@ -164,7 +164,7 @@ module Wb
         @processed_count += 1
       end
 
-      message = "∑  = #{@processed_count} " # + Done ✅
+      message = "∑ = #{@processed_count} ✅"
       @logger.info message
 
       all_were_new
