@@ -121,7 +121,8 @@ module Wb
                               branding_attributes: branding_attributes,
                               url: "/catalog/#{remote_id}/detail.aspx",
                               remote_key: remote_id,
-                              category_id: 3
+                              category_id: 3,
+                              is_available: true
                             }
       end
 
