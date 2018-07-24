@@ -1,8 +1,11 @@
 h1= "Welcome, #{@user.name}"
 
 p
-  | Total available products
+  | Total products
   strong=< number_with_delimiter @products_count, delimiter: ' '
+p
+  | Total available products
+  strong=< number_with_delimiter @available_products_count, delimiter: ' '
 
 p
   | Last update
