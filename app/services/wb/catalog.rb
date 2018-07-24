@@ -66,6 +66,8 @@ module Wb
 
         save(products_attrs, only_new) || break
       end
+
+      hide_unavailable_products unless only_new
     ensure
       spit_results
     end
@@ -203,6 +205,21 @@ module Wb
         /catalog/zhenshchinam/odezhda/sarafany
         /catalog/zhenshchinam/odezhda/platya-s-tonkimi-bretelkami
       ].map { |url| url << "#{url.include?('?') ? '&' : '?'}pagesize=200" }
+    end
+
+    def hide_unavailable_products
+      all_of_supplier = Product.available.where supplier: supplier
+      to_be_hidden = Product.where(supplier: supplier).where('updated_at < ?', @started_at)
+
+      share = to_be_hidden.size.fdiv all_of_supplier.size
+
+      if share > 0.1
+        @logger.error "😱  Attempt to hide more than 10% of all available products "\
+                      "(requested #{to_be_hidden.size} records, #{(share * 100).round}%). "\
+                      "Declined."
+      else
+        @hidden_count += to_be_hidden.update_all is_available: false
+      end
     end
 
     def spit_results
