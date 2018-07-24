@@ -8,4 +8,9 @@ class SizeArray < Array
     sizer = @product.supplier.domain::Sizer.new @product
     map { |size| sizer.russian size }
   end
+
+  def available
+    return unless @product.is_available?
+    join ', '
+  end
 end
