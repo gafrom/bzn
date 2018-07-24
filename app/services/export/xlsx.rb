@@ -24,6 +24,7 @@ module Export
 
           products = Product.includes(:supplier, :category, :brand)
                             .where(supplier_id: 12)
+                            .where('updated_at > ?', 2.weeks.ago)
                             .order(created_at: :desc)
 
           push_each_to sheet, products, :succinct

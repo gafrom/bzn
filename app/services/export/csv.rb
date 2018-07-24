@@ -6,8 +6,11 @@ module Export
       filename = "#{PATH_TO_FILE}_succinct.csv"
       ::CSV.open filename, 'wb' do |file|
         file << Product.headers(:succinct)
-        products = Product.includes(:brand, :category, :supplier).where(supplier_id: 12)
-                          .order(created_at: :desc).limit(@limit).offset(@offset)
+        products = Product.includes(:brand, :category, :supplier)
+                          .where(supplier_id: 12)
+                          .where('updated_at > ?', 2.weeks.ago)
+                          .order(created_at: :desc)
+                          .limit(@limit).offset(@offset)
         push_each_to file, products, :succinct
       end
 
