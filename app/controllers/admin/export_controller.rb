@@ -11,8 +11,13 @@ class Admin::ExportController < AdminController
   private
 
   def update_file
-    return unless obsolete?
+    # return unless obsolete?
     Rake::Task["export:#{params[:format]}:wb"].execute
+  rescue Exception => ex
+    Rails.logger.error ex.message
+    Rails.logger.error ex.backtrace.join("\n")
+
+    redirect_to(action: :catalog, format: :xlsx, file_suffix: :succinct)
   end
 
   def mime_type
