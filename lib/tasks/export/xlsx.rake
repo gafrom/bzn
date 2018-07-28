@@ -9,9 +9,12 @@ namespace :export do
   end
   namespace :xlsx do
     task wb: :environment do
-      file = Export::XLSX.new.succinct
-
-      Rails.logger.info "XLSX file `#{file}` is composed successfully ✅"
+      if Export.obsolete? 'succinct.xlsx'
+        file = Export::XLSX.new.succinct
+        Rails.logger.info "XLSX file `#{file}` is composed successfully ✅"
+      else
+        Rails.logger.info "File 'succinct.xlsx' is fresh yet - thus no export is done ✅"
+      end
     end
   end
 end
