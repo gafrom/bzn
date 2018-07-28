@@ -1,7 +1,9 @@
-every 30.minutes do
-  rake 'sync:latest supplier=wb'
+# server time, currently set to UTC
+
+every '7,37 0-9,11-23 * * *' do
+  rake 'sync:latest supplier=wb export:xlsx:wb'
 end
 
-every 1.day, at: '10:01 am' do # server time, currently set to UTC
-  rake 'sync:all supplier=wb'
+every 1.day, at: '10:01 am' do
+  rake 'sync:all supplier=wb export:xlsx:wb'
 end

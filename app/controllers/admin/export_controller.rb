@@ -11,14 +11,14 @@ class Admin::ExportController < AdminController
   private
 
   def update_file
-    return unless obsolete?
-    Rake::Task["export:#{params[:format]}:wb"].execute
-  rescue Exception => ex
-    Rails.logger.error 'HOORAY!'
-    Rails.logger.error ex.message
-    Rails.logger.error ex.backtrace.join("\n")
+    # return unless obsolete?
+    # otherwise just log it
 
-    redirect_to(action: :catalog, format: :xlsx, file_suffix: :succinct)
+    diff = latest_updated_product.updated_at - file_modified_at
+
+    Rails.logger.warn "Served obsolete xlsx file. It is stale for \e[1m#{diff.duration}\e[0m.\n"\
+                      "File modified_at: \e[1m#{file_modified_at}\e[0m.\n"\
+                      "Latest product: #{latest_updated_product.inspect}."
   end
 
   def mime_type
@@ -37,11 +37,11 @@ class Admin::ExportController < AdminController
   end
 
   def file_modified_at
-    File.mtime path_to_file
+    @file_modified_at ||= File.mtime path_to_file
   end
 
   def latest_updated_product
-    Product.where(supplier_id: 12).order(updated_at: :desc).first
+    @latest ||= Product.where(supplier_id: 12).order(updated_at: :desc).first
   end
 
   def no_file?
