@@ -30,4 +30,11 @@ namespace :sync do
 
     supplier_module::Catalog.new(ENV['host']).sync only_new: false
   end
+
+  desc "Update all products's orders counts on local machine"
+  task orders_counts: :environment do
+    supplier_module = ENV['supplier'].to_s.camelcase.constantize
+
+    supplier_module::Catalog.new(ENV['host']).sync_orders_counts
+  end
 end

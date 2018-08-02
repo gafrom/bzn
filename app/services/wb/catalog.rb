@@ -13,6 +13,7 @@ module Wb
     SCRIPT = 'script'.freeze
     WB_SETTINGS = 'wb.settings'.freeze
     SHORT_PRODUCTS_REGEXP = /shortProducts\:\s(.*)\s\}\)\;/
+    EXTRACT_PRODUCT_INIT_DATA = /wb\.product\.DomReady\.init\((.*?)\);/m
     NAME = 'name'.freeze
     BRAND = 'brand'.freeze
     MARK = 'mark'.freeze
@@ -52,6 +53,7 @@ module Wb
       end
 
       @processed_count = 0
+      @requests_count = 0
       @started_at = Time.zone.now
     end
 
@@ -72,27 +74,58 @@ module Wb
       spit_results
     end
 
-    def sync_links_from(urls, till_first_existing:)
-      scrape_links send(urls), to: :nowhere do |page|
-        page.css('#catalog-content>.catalog_main_table>.dtList').to_a.each do |div|
-          datum = RemoteDatum.find_or_initialize_by remote_id: div.attr('data-catalogercod1s').to_i
+    def sync_orders_counts
+      recent_products.find_each do |product|
+        next if @processed.include? product.remote_id
 
-          if datum.new_record?
-            datum.save
-            @created_count += 1
-          else
-            !till_first_existing || break
-            @skipped_count += 1
-          end
-
-          @processed_count += 1
+        @requests_count += 1
+        scrape_links product.url, to: :nowhere, paginate: false, format: :plain do |raw_js|
+          # @pool.run { update_sold_counts_from raw_js }
+          update_sold_counts_from raw_js
         end
       end
+
+      # @pool.await_completion
     ensure
       spit_results
     end
 
     private
+
+    def update_sold_counts_from(raw_js)
+      products_attrs = extract_products_data_from(raw_js)
+      update_sold_count_for products_attrs if products_attrs
+    end
+
+    def extract_products_data_from(raw_js)
+      raw_data = raw_js[EXTRACT_PRODUCT_INIT_DATA, 1]
+      ExecJS.eval(raw_data)['data']['nomenclatures']
+    rescue ExecJS::Error => ex
+      @logger.error "[SYNC_ORDERS_COUNTS] Failed to parse JS: #{ex.message}"
+      nil
+    end
+
+    def update_sold_count_for(products_attrs)
+      products_attrs.each do |remote_id, product_attrs|
+        remote_id = remote_id.to_i
+        @processed << remote_id if remote_id > 0
+
+        product = Product.find_by remote_id: remote_id
+        next log_warning_for remote_id unless product
+
+        product.assign_attributes sold_count: product_attrs['ordersCount'].to_i
+        was_changed = product.changes if product.changed?
+        product.save
+        @processed_count += 1
+
+        next increment_updated product, was_changed if was_changed
+        skip product
+      end
+    end
+
+    def recent_products
+      Product.where(supplier: supplier).where('updated_at > ?', 2.weeks.ago)
+    end
 
     def add_primary_stuff_to!(hsh, json)
       json['products'].each do |attrs|
@@ -223,6 +256,11 @@ module Wb
       end
     end
 
+    def log_warning_for(remote_id)
+      @logger.warn "[SYNC_ORDERS_COUNTS] No product found for remote_id: #{remote_id}"
+      @failures_count += 1
+    end
+
     def spit_results
       message = "\n[RESULTS @ #{Time.zone.now}]\n" \
                 "Total processed: #{@processed_count}\n" \
@@ -230,6 +268,7 @@ module Wb
                 "Updated: #{@updated_count}\n" \
                 "Skipped: #{@skipped_count}\n" \
                 "Hidden: #{@hidden_count}\n" \
+                "Requests: #{@requests_count}\n" \
                 "Failures: #{@failures_count}"
       @logger.info message
     end
