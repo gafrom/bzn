@@ -69,7 +69,7 @@ class Product < ApplicationRecord
     when :just_id       then %w[id title category]
     when :just_supplier then %w[id title supplier]
     when :succinct
-      %w[remote_id title supplier category sizes brand
+      %w[remote_id title supplier category orders_count sizes brand
         original_price discount_price coupon_price rating color created_at updated_at]
     end
   end
@@ -101,7 +101,7 @@ class Product < ApplicationRecord
       when :just_id       then [[id, title, category.title]]
       when :just_supplier then [[id, title, supplier.name]]
       when :succinct
-        [[remote_id, title, supplier.name, category.title, sizes.available, brand.title,
+        [[remote_id, title, supplier.name, category.title, sold_count, sizes.available, brand.title,
           original_price, discount_price, coupon_price, rating, color, created_at, updated_at]]
       when :full
         is_first_row = true
