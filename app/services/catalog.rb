@@ -38,7 +38,7 @@ class Catalog
 
   def log_success_for(url, action = :done, etc = nil)
     etc = ": #{etc}" if etc
-    @logger.debug "Processing #{url} ... #{action.to_s.capitalize}#{etc}"
+    @logger.info "Processing #{url} ... #{action.to_s.capitalize}#{etc}"
   end
 
   def request_headers

@@ -262,13 +262,13 @@ module Wb
     end
 
     def spit_results
-      message = "\n[RESULTS @ #{Time.zone.now}]\n" \
-                "Total processed: #{@processed_count}\n" \
-                "Created: #{@created_count}\n" \
-                "Updated: #{@updated_count}\n" \
-                "Skipped: #{@skipped_count}\n" \
-                "Hidden: #{@hidden_count}\n" \
-                "Requests: #{@requests_count}\n" \
+      message = "[RESULTS @ #{Time.zone.now}] "\
+                "Total processed: #{@processed_count}, "\
+                "Created: #{@created_count}, "\
+                "Updated: #{@updated_count}, "\
+                "Skipped: #{@skipped_count}, "\
+                "Hidden: #{@hidden_count}, "\
+                "Requests: #{@requests_count}, "\
                 "Failures: #{@failures_count}"
       @logger.info message
     end
