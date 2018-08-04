@@ -7,6 +7,7 @@ module Export
       @limit = limit
       @offset = offset
       @logger = Rails.logger
+      @logger.level = :info
       @results = Struct.new('Result', :exported, :skipped).new 0, 0
     end
 
