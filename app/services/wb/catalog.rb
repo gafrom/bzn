@@ -44,7 +44,7 @@ module Wb
       'Cache-Control' => 'no-cache'
     }.freeze
 
-    def initialize(*args)
+    def initialize(*)
       super
 
       @promo_prices_conn = Faraday.new(url: "#{supplier.host}/content/cardspromo") do |conn|
@@ -94,7 +94,7 @@ module Wb
 
     def update_sold_counts_from(raw_js)
       products_attrs = extract_products_data_from(raw_js)
-      update_sold_count_for products_attrs if products_attrs
+      update_sold_counts_for products_attrs if products_attrs
     end
 
     def extract_products_data_from(raw_js)
@@ -105,7 +105,7 @@ module Wb
       nil
     end
 
-    def update_sold_count_for(products_attrs)
+    def update_sold_counts_for(products_attrs)
       products_attrs.each do |remote_id, product_attrs|
         remote_id = remote_id.to_i
         @processed << remote_id if remote_id > 0
@@ -119,7 +119,7 @@ module Wb
         @processed_count += 1
 
         next increment_updated product, was_changed if was_changed
-        skip product
+        skip product, touch: false
       end
     end
 

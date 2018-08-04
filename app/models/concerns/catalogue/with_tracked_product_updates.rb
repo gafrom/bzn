@@ -91,8 +91,8 @@ module Catalogue::WithTrackedProductUpdates
     @updated_count += 1
   end
 
-  def skip(product)
-    product.touch
+  def skip(product, touch: true)
+    product.touch if touch
     log_success_for product.url, :skipped
     @skipped_count += 1
   end
