@@ -23,6 +23,8 @@ module Catalogue::WithLinksScraper
 
       if start_page
         start_page.upto PAGE_LIMIT do |num|
+          @requests_count += 1
+
           links = case format
                   when :plain
                     process_single_body "#{abs_url}#{param_prifix}page=#{num}", block
@@ -40,6 +42,8 @@ module Catalogue::WithLinksScraper
           @links_count += links.size if links.respond_to? :size
         end
       else
+        @requests_count += 1
+
         links = case format
                 when :plain then process_single_body abs_url, block
                 when :html then process_single_html abs_url, block

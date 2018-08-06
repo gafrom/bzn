@@ -71,14 +71,13 @@ module Wb
 
       hide_unavailable_products unless only_new
     ensure
-      spit_results
+      spit_results "sync:#{only_new ? 'latest' : 'all'}"
     end
 
     def sync_orders_counts
       recent_products.find_each do |product|
         next if @processed.include? product.remote_id
 
-        @requests_count += 1
         scrape_links product.url, to: :nowhere, paginate: false, format: :plain do |raw_js|
           # @pool.run { update_sold_counts_from raw_js }
           update_sold_counts_from raw_js
@@ -87,7 +86,7 @@ module Wb
 
       # @pool.await_completion
     ensure
-      spit_results
+      spit_results 'sync:orders_counts'
     end
 
     private
@@ -229,15 +228,36 @@ module Wb
     end
 
     def complete_urls_set
+        # /catalog/zhenshchinam/odezhda/platya-maksi
+        # /catalog/zhenshchinam/odezhda/platya-midi?sort=priceup
+        # /catalog/zhenshchinam/odezhda/platya-midi?sort=pricedown
+        # /catalog/zhenshchinam/odezhda/platya-mini
+        # /catalog/zhenshchinam/odezhda/svadebnye-platya
+        # /catalog/zhenshchinam/odezhda/dzhnsovye-platya
+        # /catalog/zhenshchinam/odezhda/sarafany
+        # /catalog/zhenshchinam/odezhda/platya-s-tonkimi-bretelkami
+
       %w[
-        /catalog/zhenshchinam/odezhda/platya-maksi
-        /catalog/zhenshchinam/odezhda/platya-midi?sort=priceup
-        /catalog/zhenshchinam/odezhda/platya-midi?sort=pricedown
-        /catalog/zhenshchinam/odezhda/platya-mini
-        /catalog/zhenshchinam/odezhda/svadebnye-platya
-        /catalog/zhenshchinam/odezhda/dzhnsovye-platya
-        /catalog/zhenshchinam/odezhda/sarafany
-        /catalog/zhenshchinam/odezhda/platya-s-tonkimi-bretelkami
+        /catalog/zhenshchinam/odezhda/platya?price=0;900
+        /catalog/zhenshchinam/odezhda/platya?price=901;1100
+        /catalog/zhenshchinam/odezhda/platya?price=1101;1300
+        /catalog/zhenshchinam/odezhda/platya?price=1301;1400
+        /catalog/zhenshchinam/odezhda/platya?price=1401;1550
+        /catalog/zhenshchinam/odezhda/platya?price=1551;1700
+        /catalog/zhenshchinam/odezhda/platya?price=1701;1850
+        /catalog/zhenshchinam/odezhda/platya?price=1851;2000
+        /catalog/zhenshchinam/odezhda/platya?price=2001;2200
+        /catalog/zhenshchinam/odezhda/platya?price=2201;2400
+        /catalog/zhenshchinam/odezhda/platya?price=2401;2600
+        /catalog/zhenshchinam/odezhda/platya?price=2601;2800
+        /catalog/zhenshchinam/odezhda/platya?price=2801;3040
+        /catalog/zhenshchinam/odezhda/platya?price=3041;3350
+        /catalog/zhenshchinam/odezhda/platya?price=3351;3600
+        /catalog/zhenshchinam/odezhda/platya?price=3351;3700
+        /catalog/zhenshchinam/odezhda/platya?price=3701;4300
+        /catalog/zhenshchinam/odezhda/platya?price=4301;5000
+        /catalog/zhenshchinam/odezhda/platya?price=5001;7000
+        /catalog/zhenshchinam/odezhda/platya?price=7001;98000
       ].map { |url| url << "#{url.include?('?') ? '&' : '?'}pagesize=200" }
     end
 
@@ -247,8 +267,8 @@ module Wb
 
       share = to_be_hidden.size.fdiv all_of_supplier.size
 
-      if share > 0.1
-        @logger.error "😱  Attempt to hide more than 10% of all available products "\
+      if share > 0.16
+        @logger.error "😱  Attempt to hide more than 16% of all available products "\
                       "(requested #{to_be_hidden.size} records, #{(share * 100).round}%). "\
                       "Declined."
       else
@@ -261,8 +281,8 @@ module Wb
       @failures_count += 1
     end
 
-    def spit_results
-      message = "[RESULTS @ #{Time.zone.now}] "\
+    def spit_results(tag = nil)
+      message = "[RESULTS @ #{tag}] "\
                 "Total processed: #{@processed_count}, "\
                 "Created: #{@created_count}, "\
                 "Updated: #{@updated_count}, "\
