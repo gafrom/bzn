@@ -99,11 +99,28 @@ module Catalogue::WithLinksScraper
 
   def process_single_body(paginated_url, block)
     @logger.info "Scraping body from #{paginated_url} ..."
-    block[open(paginated_url).read]
+    body = open(paginated_url).read
+    block[body]
     true
+  rescue SocketError, Net::ReadTimeout, Net::OpenTimeout => ex
+    retry_count = (retry_count || 0) + 1
+
+    if retry_count >= 5
+      log_failure_for paginated_url, ex.message
+      nil
+    else
+      sleep_time = 1.8 ** (retry_count - 1)
+      @logger.warn "[PROCESS_SINGLE_BODY] #{ex.message}. "\
+                   "Retry ##{retry_count} in #{sleep_time} seconds ..."
+      sleep sleep_time
+      retry
+    end
   rescue OpenURI::HTTPError => error
     response = error.io
     @logger.info " Got #{response.status.first} - treating it as the end of the journey. ✅"
+    nil
+  rescue => ex
+    @logger.error "[PROCESS_SINGLE_BODY] Somthing scary and unknown happened: #{ex.message}"
     nil
   end
 
