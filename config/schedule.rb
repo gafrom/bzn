@@ -12,8 +12,7 @@ every '7,37 0-5 * * 0' do
   rake 'sync:latest supplier=wb export:xlsx:wb'
 end
 
-# every '2 22 * * 1-6' do
-every '2 12 * * 1-6' do
+every '2 22 * * 1-6' do
   rake 'sync:all supplier=wb export:xlsx:wb'
 end
 
