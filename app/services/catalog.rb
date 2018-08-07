@@ -20,7 +20,7 @@ class Catalog
     @hidden_count   = 0
 
     @pool = ThreadPool.new self.class::NUM_THREADS
-    @logger = Logger.new self.class::LOG_FILE
+    @logger = Logger.new self.class::LOG_FILE, 20, 250.megabytes # 5GB total size
     @colorizer = Colorizer.new
 
     # workaround to ActiveRecord bug _load_missing_constant_
