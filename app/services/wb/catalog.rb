@@ -263,12 +263,12 @@ module Wb
 
     def hide_unavailable_products
       all_of_supplier = Product.available.where supplier: supplier
-      to_be_hidden = Product.where(supplier: supplier).where('updated_at < ?', @started_at)
+      to_be_hidden    = all_of_supplier.where 'updated_at < ?', @started_at
 
       share = to_be_hidden.size.fdiv all_of_supplier.size
 
-      if share > 0.2
-        @logger.error "😱  Attempt to hide more than 20% of all available products "\
+      if share > 0.1
+        @logger.error "😱  Attempt to hide more than 10% of all available products "\
                       "(requested #{to_be_hidden.size} records, #{(share * 100).round}%). "\
                       "Declined."
       else
