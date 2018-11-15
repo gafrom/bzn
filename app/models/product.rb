@@ -78,6 +78,10 @@ class Product < ApplicationRecord
     is_available ? 20 : 0
   end
 
+  def rel_path
+    url[0] == ?/ ? url[1..-1] : url
+  end
+
   def full_url
     "#{supplier.host}#{url}"
   end

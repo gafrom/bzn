@@ -19,6 +19,8 @@ module Wb
     MARK = 'mark'.freeze
     COLOR = 'color'.freeze
     PRICE = 'price'.freeze
+    NOMENCL = 'nomenclatures'.freeze
+    OC = 'ordersCount'.freeze
     MIN_PRICE = 'minPrice'.freeze
     COD1S = 'cod1S'.freeze
     COUPON_PRICE = 'couponPrice'.freeze
@@ -52,6 +54,15 @@ module Wb
         conn.adapter :net_http
       end
 
+      @general_conn = Faraday.new(url: supplier.host) do |conn|
+        conn.headers.merge! INDEX_PAGE_HEADERS
+        conn.adapter :net_http
+      end
+
+      @joke_conn = Faraday.new(url: ENV['KB_JOKE_BASE_URL']) do |conn|
+        conn.adapter :net_http
+      end
+
       @processed_count = 0
       @requests_count = 0
       @started_at = Time.zone.now
@@ -78,9 +89,9 @@ module Wb
       recent_products.find_each do |product|
         next if @processed.include? product.remote_id
 
-        scrape_links product.url, to: :nowhere, paginate: false, format: :plain do |raw_js|
-          # @pool.run { update_sold_counts_from raw_js }
-          update_sold_counts_from raw_js
+        process_single_get_json product.rel_path do |json|
+          # @pool.run { update_sold_counts_from json }
+          update_sold_counts_from json
         end
       end
 
@@ -91,28 +102,37 @@ module Wb
 
     private
 
-    def update_sold_counts_from(raw_js)
-      products_attrs = extract_products_data_from(raw_js)
-      update_sold_counts_for products_attrs if products_attrs
+    def process_single_get_json(path)
+      @logger.info "Scraping JSON from #{path} ..."
+      response = @joke_conn.get path
+      @requests_count += 1
+
+      if response.success?
+        yield JSON.parse(response.body)
+      else
+        @logger.info "Got #{response.status} - treating it as the end of the journey. ✅"
+      end
+    rescue JSON::ParserError => error
+      @logger.info "Got wrong JSON (#{error.message}) - treating it as the end of the journey. ✅"
     end
 
-    def extract_products_data_from(raw_js)
-      raw_data = raw_js[EXTRACT_PRODUCT_INIT_DATA, 1]
-      ExecJS.eval(raw_data)['data']['nomenclatures']
-    rescue ExecJS::Error => ex
-      @logger.error "[SYNC_ORDERS_COUNTS] Failed to parse JS: #{ex.message}"
-      nil
+    def update_sold_counts_from(json)
+      products_attrs = json['data']['colors']
+      update_sold_counts_for products_attrs if products_attrs.present?
     end
 
     def update_sold_counts_for(products_attrs)
-      products_attrs.each do |remote_id, product_attrs|
-        remote_id = remote_id.to_i
+      products_attrs.each do |product_attrs|
+        remote_id = product_attrs[COD1S].to_i
         @processed << remote_id if remote_id > 0
 
         product = Product.find_by remote_id: remote_id
         next log_warning_for remote_id unless product
 
-        product.assign_attributes sold_count: product_attrs['ordersCount'].to_i
+        sold_count = product_attrs[NOMENCL][0][OC].to_i
+        next log_warning_for remote_id, 'No ordersCount' unless sold_count
+
+        product.assign_attributes sold_count: sold_count
         was_changed = product.changes if product.changed?
         product.save
         @processed_count += 1
@@ -276,8 +296,8 @@ module Wb
       end
     end
 
-    def log_warning_for(remote_id)
-      @logger.warn "[SYNC_ORDERS_COUNTS] No product found for remote_id: #{remote_id}"
+    def log_warning_for(remote_id, msg = 'No product found')
+      @logger.warn "[SYNC_ORDERS_COUNTS] #{msg} for remote_id: #{remote_id}"
       @failures_count += 1
     end
 

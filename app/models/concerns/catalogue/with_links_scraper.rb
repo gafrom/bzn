@@ -10,7 +10,6 @@ module Catalogue::WithLinksScraper
       CSV.open path_to_file(:links), 'wb'
     end
 
-    conn = build_json_connection if format == :json
     rel_urls = [rel_urls] unless rel_urls.respond_to? :each
     start_page = paginate ? start_page : false
     @links_count = 0
@@ -32,7 +31,7 @@ module Catalogue::WithLinksScraper
                     process_single_html "#{abs_url}#{param_prifix}page=#{num}", block
                   when :json
                     ref_url = num > 1 ? "#{abs_url}#{param_prifix}page=#{num - 1}" : supplier.host
-                    process_single_json "#{rel_url}#{param_prifix}page=#{num}", ref_url, conn, block
+                    process_single_json "#{rel_url}#{param_prifix}page=#{num}", ref_url, block
                   end
 
           @pages_count += 1
@@ -47,7 +46,7 @@ module Catalogue::WithLinksScraper
         links = case format
                 when :plain then process_single_body abs_url, block
                 when :html then process_single_html abs_url, block
-                when :json then process_single_json rel_url, supplier.host, conn, block
+                when :json then process_single_json rel_url, supplier.host, block
                 end
 
         @pages_count += 1
@@ -77,17 +76,9 @@ module Catalogue::WithLinksScraper
     end
   end
 
-  def build_json_connection
-    Faraday.new(url: supplier.host) do |conn|
-      conn.headers.merge! self.class::INDEX_PAGE_HEADERS
-      # conn.response :logger
-      conn.adapter  :net_http
-    end
-  end
-
-  def process_single_json(rel_url, ref_url, conn, block)
+  def process_single_json(rel_url, ref_url, block)
     @logger.info "Scraping JSON from #{rel_url} ..."
-    response = conn.post rel_url, nil, Referer: ref_url
+    response = @general_conn.post rel_url, nil, Referer: ref_url
 
     if response.success?
       block[JSON.parse(response.body)]
