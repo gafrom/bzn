@@ -96,6 +96,9 @@ module Wb
       end
 
       # @pool.await_completion
+    rescue Exception => ex
+      @logger.error "[HORROR!] We ended up being thrown out of the program. ☠️"
+      @logger.error ex
     ensure
       spit_results 'sync:orders_counts'
     end
