@@ -96,9 +96,6 @@ module Wb
       end
 
       # @pool.await_completion
-    rescue Exception => ex
-      @logger.error "[HORROR!] We ended up being thrown out of the program. ☠️"
-      @logger.error ex
     ensure
       spit_results 'sync:orders_counts'
     end
@@ -107,7 +104,19 @@ module Wb
 
     def process_single_get_json(path)
       @logger.info "Scraping JSON from #{path} ..."
-      response = @joke_conn.get path
+
+      begin
+        response = @joke_conn.get path
+      rescue Exception => ex
+        attempt_num ||= 0
+        @logger.error "[PROCESS_SINGLE_GET_JSON] Connection was lost ☠.️"\
+                      "Reconnecting... (attempt #{attempt_num += 1})"
+        retry sleep(1.5**attempt_num) if attempt_num < 6
+
+        @logger.error "[PROCESS_SINGLE_GET_JSON] Terminating after #{attempt_num} attempts."
+        @logger.error ex
+      end
+
       @requests_count += 1
 
       if response.success?
@@ -231,8 +240,18 @@ module Wb
     def fetch_json(payload:)
       @logger.info "POST [JSON] to #{@promo_prices_conn.url_prefix} ..."
 
-      response = @promo_prices_conn.post do |req|
-        req.body = URI.encode_www_form(payload)
+      begin
+        response = @promo_prices_conn.post do |req|
+          req.body = URI.encode_www_form(payload)
+        end
+      rescue Exception => ex
+        attempt_num ||= 0
+        @logger.error "[FETCH_JSON] Connection was lost ☠.️"\
+                      "Reconnecting... (attempt #{attempt_num += 1})"
+        retry sleep(1.5**attempt_num) if attempt_num < 6
+
+        @logger.error "[FETCH_JSON] Terminating after #{attempt_num} attempts."
+        @logger.error ex
       end
 
       response.body if response.success?
