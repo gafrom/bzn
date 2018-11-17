@@ -110,15 +110,15 @@ module Wb
       begin
         response = @joke_conn.get path
       rescue Exception => ex
-        attempt_num ||= 0
-        @logger.error "[PROCESS_SINGLE_GET_JSON] Connection was lost ☠.️"\
-                      "Reconnecting... (attempt #{attempt_num += 1})"
-        if attempt_num < 6
-          sleep 1.5**attempt_num
+        retry_num ||= 0
+        if retry_num < 6
+          @logger.error "[PROCESS_SINGLE_GET_JSON] Connection failed ☠ . ️"\
+                        "Reconnecting... (retry ##{retry_num += 1})"
+          sleep 1.5**retry_num
           retry
         end
 
-        @logger.error "[PROCESS_SINGLE_GET_JSON] Terminating after #{attempt_num} attempts."
+        @logger.error "[PROCESS_SINGLE_GET_JSON] Terminating after #{retry_num + 1} attempts."
         @logger.error ex
       end
 
@@ -250,15 +250,15 @@ module Wb
           req.body = URI.encode_www_form(payload)
         end
       rescue Exception => ex
-        attempt_num ||= 0
-        @logger.error "[FETCH_JSON] Connection was lost ☠.️"\
-                      "Reconnecting... (attempt #{attempt_num += 1})"
-        if attempt_num < 6
-          sleep 1.5**attempt_num
+        retry_num ||= 0
+        if retry_num < 6
+          @logger.error "[FETCH_JSON] Connection failed ☠ . ️"\
+                        "Reconnecting... (retry ##{retry_num += 1})"
+          sleep 1.5**retry_num
           retry
         end
 
-        @logger.error "[FETCH_JSON] Terminating after #{attempt_num} attempts."
+        @logger.error "[FETCH_JSON] Terminating after #{retry_num + 1} attempts."
         @logger.error ex
       end
 
