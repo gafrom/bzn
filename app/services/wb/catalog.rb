@@ -113,7 +113,10 @@ module Wb
         attempt_num ||= 0
         @logger.error "[PROCESS_SINGLE_GET_JSON] Connection was lost ☠.️"\
                       "Reconnecting... (attempt #{attempt_num += 1})"
-        retry sleep(1.5**attempt_num) if attempt_num < 6
+        if attempt_num < 6
+          sleep 1.5**attempt_num
+          retry
+        end
 
         @logger.error "[PROCESS_SINGLE_GET_JSON] Terminating after #{attempt_num} attempts."
         @logger.error ex
@@ -250,7 +253,10 @@ module Wb
         attempt_num ||= 0
         @logger.error "[FETCH_JSON] Connection was lost ☠.️"\
                       "Reconnecting... (attempt #{attempt_num += 1})"
-        retry sleep(1.5**attempt_num) if attempt_num < 6
+        if attempt_num < 6
+          sleep 1.5**attempt_num
+          retry
+        end
 
         @logger.error "[FETCH_JSON] Terminating after #{attempt_num} attempts."
         @logger.error ex
