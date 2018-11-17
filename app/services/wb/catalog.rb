@@ -93,6 +93,8 @@ module Wb
           # @pool.run { update_sold_counts_from json }
           update_sold_counts_from json
         end
+
+        sleep 0.2
       end
 
       # @pool.await_completion
