@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180720135437) do
+ActiveRecord::Schema.define(version: 20181210184930) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -48,6 +48,26 @@ ActiveRecord::Schema.define(version: 20180720135437) do
     t.string "title"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+  end
+
+  create_table "daily_facts", force: :cascade do |t|
+    t.integer "remote_id"
+    t.bigint "product_id"
+    t.bigint "category_id"
+    t.bigint "brand_id"
+    t.integer "original_price"
+    t.integer "discount_price"
+    t.integer "coupon_price"
+    t.integer "sold_count"
+    t.integer "rating"
+    t.boolean "is_available"
+    t.string "sizes", default: [], array: true
+    t.date "created_at", null: false
+    t.index ["brand_id"], name: "index_daily_facts_on_brand_id"
+    t.index ["category_id"], name: "index_daily_facts_on_category_id"
+    t.index ["created_at"], name: "index_daily_facts_on_created_at"
+    t.index ["product_id", "created_at"], name: "index_daily_facts_on_product_id_and_created_at"
+    t.index ["product_id"], name: "index_daily_facts_on_product_id"
   end
 
   create_table "products", force: :cascade do |t|
@@ -120,6 +140,9 @@ ActiveRecord::Schema.define(version: 20180720135437) do
   add_foreign_key "brandings", "products"
   add_foreign_key "colorations", "colors"
   add_foreign_key "colorations", "products"
+  add_foreign_key "daily_facts", "brands"
+  add_foreign_key "daily_facts", "categories"
+  add_foreign_key "daily_facts", "products"
   add_foreign_key "products", "categories"
   add_foreign_key "products", "suppliers"
 end
