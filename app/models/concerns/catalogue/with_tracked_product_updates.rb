@@ -57,11 +57,31 @@ module Catalogue::WithTrackedProductUpdates
 
     return log_failure_for attrs[:title], product.errors.messages unless saved
 
+    save_daily_fact(product)
+
     return increment_created product if was_new_record
     return increment_updated product, was_changed if was_changed
     skip product
   rescue NoMethodError, NotImplementedError => ex
     log_failure_for (product.url || attrs[:title]), ex.message
+  end
+
+  def save_daily_fact(product)
+    fact = DailyFact.find_or_initialize_by created_at: Date.today, product_id: product.id
+    fact.assign_attributes(
+      product:        product, # to avoid db hitting
+      remote_id:      product.remote_id,
+      category_id:    product.category_id,
+      brand_id:       product.brand_id,
+      original_price: product.original_price,
+      discount_price: product.discount_price,
+      coupon_price:   product.coupon_price,
+      sold_count:     product.sold_count,
+      rating:         product.rating,
+      is_available:   product.is_available,
+      sizes:          product.sizes
+    )
+    fact.save
   end
 
   def hide_removed_products

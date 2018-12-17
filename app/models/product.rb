@@ -54,6 +54,7 @@ class Product < ApplicationRecord
   has_one :branding, dependent: :destroy
   accepts_nested_attributes_for :branding, update_only: true
   has_one :brand, through: :branding
+  delegate :brand_id, to: :branding
 
   belongs_to :category
   belongs_to :supplier
