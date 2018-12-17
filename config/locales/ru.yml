@@ -37,6 +37,10 @@ ru:
 
   back_to_admin_home: Назад на Главную панель
 
+  date:
+    formats:
+      xlsx: "%Y-%m-%d"
+
   time:
     formats:
       succinct: "%d %B, %A, %H:%M %Z"

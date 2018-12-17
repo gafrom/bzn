@@ -44,7 +44,7 @@ class DailyReport
     result = ['remote_id']
 
     @num_days.times do |n|
-      result << I18n.l(@start_at + n.days, format: :date)
+      result << I18n.l(@start_at + n.days, format: :xlsx)
     end
 
     result += ['orders OB', 'orders CB']
