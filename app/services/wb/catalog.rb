@@ -319,8 +319,8 @@ module Wb
 
       share = to_be_hidden.size.fdiv all_of_supplier.size
 
-      if share > 0.3
-        @logger.error "😱  Attempt to hide more than 30% of all available products "\
+      if share > 0.2
+        @logger.error "😱  Attempt to hide more than 20% of all available products "\
                       "(requested #{to_be_hidden.size} records, #{(share * 100).round}%). "\
                       "Declined."
       else
