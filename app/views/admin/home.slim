@@ -1,15 +1,17 @@
-h1= "Welcome, #{@user.name}"
+h1.slidable= "Welcome, #{@user.name}"
 
-p
+p.slidable
   | Total products
   strong=< number_with_delimiter @products_count, delimiter: ' '
-p
+p.slidable
   | Total available products
   strong=< number_with_delimiter @available_products_count, delimiter: ' '
 
-p
+p.slidable
   | Last update
   strong=< l @latest_updated_product.updated_at, format: :succinct
 
-.something
+.something.slidable
   = link_to '🌭 Download XLSX', admin_export_catalog_path('succinct.xlsx'), target: :_blank
+
+.christmas_tree.walkable= image_tag('tree2.jpg', width: 100)
