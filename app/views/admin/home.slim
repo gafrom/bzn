@@ -12,6 +12,15 @@ p.slidable
   strong=< l @latest_updated_product.updated_at, format: :succinct
 
 .something.slidable
-  = link_to '🌭 Download XLSX', admin_export_catalog_path('succinct.xlsx'), target: :_blank
+  = link_to admin_export_catalog_path('succinct.xlsx'), target: :_blank do
+    h3
+      | 🌭
+      span Download old report
+
+.something.slidable
+  = link_to admin_export_catalog_path('juice.xlsx'), target: :_blank do
+    h3
+      | 🍹
+      span= "Download juicy report#{maybe_add_size('juice.xlsx')}"
 
 .christmas_tree.walkable= image_tag('tree2.jpg', width: 100)
