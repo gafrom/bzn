@@ -13,6 +13,7 @@ gem 'dotenv-rails', require: 'dotenv/rails-now'
 gem 'rails', '~> 5.1.4'
 gem 'devise'
 gem 'whenever', require: false
+gem 'sidekiq'
 
 # Frontend stuff
 gem 'slim-rails'

@@ -11,6 +11,7 @@ set :bundle_jobs, 4
 set :bundle_env_variables, nokogiri_use_system_libraries: 1
 
 set :eye_roles, -> { :app }
+set :eye_config, 'config/eye.rb'
 set :deploy_to, -> { '~/bzn' }
 
 # set :whenever_identifier, -> { "#{fetch(:application)}_#{fetch(:stage)}" }
