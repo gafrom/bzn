@@ -117,11 +117,24 @@ input[type=submit] {
     text-decoration: none;
   }
 
-  h3 {
-    span {
-      left: 10px;
-      position: relative;
-      font-size: smaller;
+  .link {
+    .image {
+      display: inline-block;
+      font-size: 35px;
+      margin-right: 5px;
+    }
+    .text {
+      display: inline-block;
+
+      .title {
+        font-size: 16px;
+        margin: 5px 0;
+
+      }
+      .description {
+        color: grey;
+        font-size: 12px;
+      }
     }
   }
 }
