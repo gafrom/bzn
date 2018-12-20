@@ -9,5 +9,7 @@ Rails.application.routes.draw do
     resources :products, only: [:index, :show, :edit, :update]
 
     get 'export/catalog(/:file_suffix)', to: 'export#catalog', as: :export_catalog
+
+    get 'daily', to: 'reports#daily', as: :daily_report
   end
 end
