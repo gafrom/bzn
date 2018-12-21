@@ -1,30 +1,41 @@
-h1.slidable= "Welcome, #{@user.name}"
+.one
+  h1.slidable= "Welcome, #{@user.name}"
+  p.slidable
+    | Total products
+    strong=< number_with_delimiter @products_count, delimiter: ' '
+  p.slidable
+    | Total available products
+    strong=< number_with_delimiter @available_products_count, delimiter: ' '
+  p.slidable
+    | Last update
+    strong=< l @latest_updated_product.updated_at, format: :succinct
 
-p.slidable
-  | Total products
-  strong=< number_with_delimiter @products_count, delimiter: ' '
-p.slidable
-  | Total available products
-  strong=< number_with_delimiter @available_products_count, delimiter: ' '
+  .line.slidable
 
-p.slidable
-  | Last update
-  strong=< l @latest_updated_product.updated_at, format: :succinct
+  = form_tag admin_daily_report_path, method: :post, class: 'daily-report-form' do
+    .slidable
+      | С
+      = date_field_tag(:start_at, nil, class: 'field')
+      | по
+      = date_field_tag(:end_at, nil, class: 'field')
+      br
+    = submit_tag t('.create_report'), class: 'slidable'
 
-.something.slidable
-  = link_to admin_export_catalog_path('succinct.xlsx'), target: :_blank do
-    .link
-      .image 🌭
-      .text
-        .title Download old report
-        .description= file_description('succinct.xlsx')
+  .something.slidable
+    = link_to admin_export_catalog_path('juice.xlsx'), target: :_blank do
+      .link
+        .image 🍹
+        .text
+          .title Download juicy report
+          .description= file_description('juice.xlsx')
 
-.something.slidable
-  = link_to admin_export_catalog_path('juice.xlsx'), target: :_blank do
-    .link
-      .image 🍹
-      .text
-        .title Download juicy report
-        .description= file_description('juice.xlsx')
+  .something.slidable
+    = link_to admin_export_catalog_path('succinct.xlsx'), target: :_blank do
+      .link
+        .image 🌭
+        .text
+          .title Download old report
+          .description= file_description('succinct.xlsx')
 
-.christmas_tree.walkable= image_tag('tree2.jpg', width: 100)
+.another
+  .christmas_tree.walkable= image_tag('tree2.jpg', width: 100)

@@ -46,3 +46,7 @@ ru:
       succinct: "%d %B, %A, %H:%M %Z"
       xlsx: "%d %B %H-%M %Z"
       date: "%Y-%m-%d"
+
+  admin:
+    home:
+      create_report: Создать отчёт
