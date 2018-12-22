@@ -1,8 +1,6 @@
 class Admin::ReportsController < ApplicationController
   before_action :set_dates, only: :create
 
-  def show; end
-
   def create
     DailyReportJob.perform_later *@dates.map(&:to_s)
 

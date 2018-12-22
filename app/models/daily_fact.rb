@@ -36,8 +36,8 @@ class DailyFact < ApplicationRecord
   belongs_to :category, optional: true
   belongs_to :brand, optional: true
 
-  scope(:between, ->(start_at, end_at) {
-    select('product_id, remote_id, created_at, sold_count, array_length(sizes, 1) as sizes_count')
-      .where(created_at: start_at..end_at)
+  scope(:for_report, -> {
+    select('id, product_id, remote_id, created_at, sold_count,'\
+           'array_length(sizes, 1) as sizes_count')
   })
 end

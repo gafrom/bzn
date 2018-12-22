@@ -1,6 +1,7 @@
 class DailyReport
   PATH_TO_FILE = Rails.root.join 'storage', 'export'
   OFFSET = 1 # number of columns to the left of columns with dates
+  BATCH_SIZE = 50_000
 
   attr_reader :start_at, :end_at, :num_days, :column_index, :filename, :facts
 
@@ -12,7 +13,8 @@ class DailyReport
     @column_index = @num_days.times.reduce({}) { |hsh, n| hsh[(@start_at + n.days).yday] = n; hsh }
 
     @filename = "#{PATH_TO_FILE}_juice.xlsx"
-    @facts = DailyFact.between(@start_at, @end_at).order(:product_id, :created_at)
+    @facts_ids = DailyFact.where(created_at: @start_at..@end_at)
+                          .order(:product_id, :created_at).pluck(:id)
   end
 
   def store
@@ -21,18 +23,20 @@ class DailyReport
         product_id = nil
         row = headers
 
-        @facts.each do |fact| # do not use batches since sort order is not retained
-          if product_id != fact.product_id
-            sheet << row
-            product_id = fact.product_id
-            row = [fact.remote_id]
+        @facts_ids.each_slice(BATCH_SIZE) do |ids|
+          DailyFact.for_report.find(ids).each do |fact|
+            if product_id != fact.product_id
+              sheet << row
+              product_id = fact.product_id
+              row = [fact.remote_id]
+            end
+
+            i = @column_index[fact.created_at.yday]
+            row[OFFSET + i] = fact.sizes_count
+
+            row[OFFSET + @num_days + 0] = fact.sold_count if i == 0
+            row[OFFSET + @num_days + 1] = fact.sold_count if i == @num_days - 1
           end
-
-          i = @column_index[fact.created_at.yday]
-          row[OFFSET + i] = fact.sizes_count
-
-          row[OFFSET + @num_days + 0] = fact.sold_count if i == 0
-          row[OFFSET + @num_days + 1] = fact.sold_count if i == @num_days - 1
         end
 
         sheet << row
