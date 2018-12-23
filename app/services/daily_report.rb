@@ -1,7 +1,7 @@
 class DailyReport
   PATH_TO_FILE = Rails.root.join 'storage', 'export'
   OFFSET = 1 # number of columns to the left of columns with dates
-  BATCH_SIZE = 50_000
+  BATCH_SIZE = 30_000
 
   attr_reader :start_at, :end_at, :num_days, :column_index, :filename, :facts
 
@@ -15,6 +15,8 @@ class DailyReport
     @filename = "#{PATH_TO_FILE}_juice.xlsx"
     @facts_ids = DailyFact.where(created_at: @start_at..@end_at)
                           .order(:product_id, :created_at).pluck(:id)
+
+    GC.start
   end
 
   def store
@@ -37,6 +39,8 @@ class DailyReport
             row[OFFSET + @num_days + 0] = fact.sold_count if i == 0
             row[OFFSET + @num_days + 1] = fact.sold_count if i == @num_days - 1
           end
+
+          GC.start
         end
 
         sheet << row
