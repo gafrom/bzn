@@ -162,7 +162,11 @@ module Wb
     end
 
     def recent_products
-      Product.where(supplier: supplier).where('updated_at > ?', 2.weeks.ago)
+      Product.joins('INNER JOIN daily_facts ON products.id = daily_facts.product_id')
+             .where('products.supplier_id = ? '\
+                    'AND daily_facts.created_at >= ? '\
+                    'AND daily_facts.is_available = ?', supplier.id, 1.week.ago.to_date, true)
+             .distinct
     end
 
     def add_primary_stuff_to!(hsh, json)
