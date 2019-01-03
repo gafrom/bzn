@@ -154,7 +154,7 @@ module Wb
         product.save
         @processed_count += 1
 
-        save_daily_fact(product)
+        save_daily_fact(product, was_changed)
 
         next increment_updated product, was_changed if was_changed
         skip product, touch: false
