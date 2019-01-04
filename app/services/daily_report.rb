@@ -1,6 +1,7 @@
 class DailyReport
   PATH_TO_FILE = Rails.root.join 'storage', 'export'
-  OFFSET = 1 # number of columns to the left of columns with dates
+  LOFFSET = 2 # number of columns to the left of columns with dates
+  ROFFSET = 1 # number of columns between columns with dates and columns with sold_count
   BATCH_SIZE = 30_000
 
   attr_reader :start_at, :end_at, :num_days, :column_index, :filename, :facts
@@ -24,37 +25,55 @@ class DailyReport
       xlsx.write_worksheet I18n.l(Time.now, format: :xlsx) do |sheet|
         product_id = nil
         row = headers
+        prices = []
 
         @facts_ids.each_slice(BATCH_SIZE) do |ids|
           DailyFact.for_report.find(ids).each do |fact|
             if product_id != fact.product_id
+              row[LOFFSET + @num_days] = average_price(prices) if product_id
               sheet << row
+              row = [fact.brand.title, fact.remote_id]
+
               product_id = fact.product_id
-              row = [fact.remote_id]
             end
 
             i = @column_index[fact.created_at.yday]
-            row[OFFSET + i] = fact.sizes_count
+            row[LOFFSET + i] = fact.sizes_count
 
-            row[OFFSET + @num_days + 0] = fact.sold_count if i == 0
-            row[OFFSET + @num_days + 1] = fact.sold_count if i == @num_days - 1
+            row[LOFFSET + @num_days + ROFFSET + 0] = fact.sold_count if i == 0
+            row[LOFFSET + @num_days + ROFFSET + 1] = fact.sold_count if i == @num_days - 1
+
+            prices[i] = fact.coupon_price
           end
 
           GC.start
         end
 
+        row[LOFFSET + @num_days] = average_price(prices)
         sheet << row
       end
     end
   end
 
   def headers
-    result = ['remote_id']
+    result = ['brand', 'remote_id']
 
     @num_days.times do |n|
       result << I18n.l(@start_at + n.days, format: :xlsx)
     end
 
-    result += ['orders OB', 'orders CB']
+    result += ['avg coupon_price', 'orders OB', 'orders CB']
+  end
+
+  def average_price(prices)
+    sum = 0
+    size = 0
+    prices.each do |price|
+      next unless price
+      sum += price
+      size += 1
+    end
+
+    sum.fdiv(size) if size.positive?
   end
 end

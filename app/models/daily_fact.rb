@@ -37,7 +37,8 @@ class DailyFact < ApplicationRecord
   belongs_to :brand, optional: true
 
   scope(:for_report, -> {
-    select('id, product_id, remote_id, created_at, sold_count,'\
-           'array_length(sizes, 1) as sizes_count')
+    includes(:brand)
+      .select('id, product_id, remote_id, brand_id, coupon_price, sold_count,'\
+              'created_at, array_length(sizes, 1) as sizes_count')
   })
 end
