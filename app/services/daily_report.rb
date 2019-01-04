@@ -74,6 +74,6 @@ class DailyReport
       size += 1
     end
 
-    sum.fdiv(size) if size.positive?
+    sum.fdiv(size).to_i if size.positive?
   end
 end
