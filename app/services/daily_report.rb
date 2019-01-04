@@ -2,7 +2,7 @@ class DailyReport
   PATH_TO_FILE = Rails.root.join 'storage', 'export'
   LOFFSET = 2 # number of columns to the left of columns with dates
   ROFFSET = 1 # number of columns between columns with dates and columns with sold_count
-  BATCH_SIZE = 30_000
+  BATCH_SIZE = 500
 
   attr_reader :start_at, :end_at, :num_days, :column_index, :filename, :facts
 
