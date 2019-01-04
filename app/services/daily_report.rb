@@ -9,7 +9,7 @@ class DailyReport
   def initialize(start_at, end_at)
     @start_at = start_at.to_date
     @end_at   = end_at.to_date
-    @num_days = (@end_at.yday - @start_at.yday + 1).to_i
+    @num_days = (@end_at - @start_at + 1).to_i
 
     @column_index = @num_days.times.reduce({}) { |hsh, n| hsh[(@start_at + n.days).yday] = n; hsh }
 
