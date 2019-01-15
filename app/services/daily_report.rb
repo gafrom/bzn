@@ -2,7 +2,15 @@ class DailyReport
   PATH_TO_FILE = Rails.root.join 'storage', 'export'
   LOFFSET = 2 # number of columns to the left of columns with dates
   ROFFSET = 1 # number of columns between columns with dates and columns with sold_count
-  BATCH_SIZE = 500
+  BATCH_SIZE = 10000
+
+  PRODUCT_ID   = 'product_id'.freeze
+  REMOTE_ID    = 'remote_id'.freeze
+  BRAND_TITLE  = 'brand_title'.freeze
+  COUPON_PRICE = 'coupon_price'.freeze
+  SOLD_COUNT   = 'sold_count'.freeze
+  CREATED_AT   = 'created_at'.freeze
+  SIZES_COUNT  = 'sizes_count'.freeze
 
   attr_reader :start_at, :end_at, :num_days, :column_index, :filename, :facts
 
@@ -11,7 +19,7 @@ class DailyReport
     @end_at   = end_at.to_date
     @num_days = (@end_at - @start_at + 1).to_i
 
-    @column_index = @num_days.times.reduce({}) { |hsh, n| hsh[(@start_at + n.days).yday] = n; hsh }
+    @column_index = @num_days.times.reduce({}) { |hsh, n| hsh[@start_at + n.days] = n; hsh }
 
     @filename = "#{PATH_TO_FILE}_juice.xlsx"
     @facts_ids = DailyFact.where(created_at: @start_at..@end_at)
@@ -28,25 +36,23 @@ class DailyReport
         prices = []
 
         @facts_ids.each_slice(BATCH_SIZE) do |ids|
-          DailyFact.for_report.find(ids).each do |fact|
-            if product_id != fact.product_id
+          DailyFact.pluck_fields_for_report(ids).each do |fact|
+            if product_id != fact[PRODUCT_ID]
               row[LOFFSET + @num_days] = average_price(prices) if product_id
               sheet << row
-              row = [fact.brand.title, fact.remote_id]
+              row = [fact[BRAND_TITLE], fact[REMOTE_ID]]
 
-              product_id = fact.product_id
+              product_id = fact[PRODUCT_ID]
             end
 
-            i = @column_index[fact.created_at.yday]
-            row[LOFFSET + i] = fact.sizes_count
+            i = @column_index[fact[CREATED_AT].to_date]
+            row[LOFFSET + i] = fact[SIZES_COUNT]
 
-            row[LOFFSET + @num_days + ROFFSET + 0] = fact.sold_count if i == 0
-            row[LOFFSET + @num_days + ROFFSET + 1] = fact.sold_count if i == @num_days - 1
+            row[LOFFSET + @num_days + ROFFSET + 0] = fact[SOLD_COUNT] if i == 0
+            row[LOFFSET + @num_days + ROFFSET + 1] = fact[SOLD_COUNT] if i == @num_days - 1
 
-            prices[i] = fact.coupon_price
+            prices[i] = fact[COUPON_PRICE]
           end
-
-          GC.start
         end
 
         row[LOFFSET + @num_days] = average_price(prices)

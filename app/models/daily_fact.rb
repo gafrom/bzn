@@ -32,13 +32,20 @@
 #
 
 class DailyFact < ApplicationRecord
+  STATEMENT = <<~SQL.freeze
+    SELECT f.product_id, f.remote_id, f.coupon_price, f.sold_count, f.created_at,
+           array_length(f.sizes, 1) as sizes_count, b.title as brand_title
+    FROM daily_facts f
+    INNER JOIN unnest('{%{ids}}'::int[]) WITH ORDINALITY t(id, ord) USING (id)
+    LEFT JOIN brands b ON f.brand_id = b.id
+    ORDER BY t.ord
+  SQL
+
   belongs_to :product
   belongs_to :category, optional: true
   belongs_to :brand, optional: true
 
-  scope(:for_report, -> {
-    includes(:brand)
-      .select('id, product_id, remote_id, brand_id, coupon_price, sold_count,'\
-              'created_at, array_length(sizes, 1) as sizes_count')
-  })
+  def self.pluck_fields_for_report(ids)
+    connection.execute(STATEMENT % { ids: ids.join(',') })
+  end
 end
