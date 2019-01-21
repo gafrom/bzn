@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20181210184930) do
+ActiveRecord::Schema.define(version: 20190121155438) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -68,6 +68,16 @@ ActiveRecord::Schema.define(version: 20181210184930) do
     t.index ["created_at"], name: "index_daily_facts_on_created_at"
     t.index ["product_id", "created_at"], name: "index_daily_facts_on_product_id_and_created_at"
     t.index ["product_id"], name: "index_daily_facts_on_product_id"
+  end
+
+  create_table "daily_report_tasks", force: :cascade do |t|
+    t.string "status"
+    t.date "start_at"
+    t.date "end_at"
+    t.datetime "dequeued_at"
+    t.string "filename"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "products", force: :cascade do |t|
