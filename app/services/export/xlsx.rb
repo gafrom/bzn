@@ -16,7 +16,7 @@ module Export
     end
 
     def succinct
-      @filename = "#{PATH_TO_FILE}_succinct.xlsx"
+      @filename = PATH_TO_FILE.join 'succinct.xlsx'
 
       Xlsxtream::Workbook.open filename do |xlsx|
         xlsx.write_worksheet I18n.l(Time.now, format: :xlsx) do |sheet|

@@ -11,6 +11,8 @@ class Admin::ExportController < AdminController
   private
 
   def update_file
+    head 404 if Export.no_file? filename
+
     return unless Export.obsolete? filename
     # otherwise just log it
     Rails.logger.warn "Served obsolete xlsx file. #{Export.obsolescence_message_for filename}"

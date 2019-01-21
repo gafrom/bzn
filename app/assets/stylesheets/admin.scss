@@ -125,7 +125,6 @@ input[type=submit] {
 
   .one {
     display: inline-block;
-    width: 35%;
     vertical-align: top;
   }
 
@@ -143,6 +142,8 @@ input[type=submit] {
   }
 
   .link {
+    list-style: none;
+
     .image {
       display: inline-block;
       font-size: 35px;
@@ -152,9 +153,18 @@ input[type=submit] {
       display: inline-block;
 
       .title {
+        display: inline-block;
         font-size: 16px;
         margin: 5px 0;
 
+      }
+      .status {
+        display: inline-block;
+        margin-left: 10px;
+
+        &.created { color: grey; }
+        &.dequeued { color: sandybrown; }
+        &.completed { color: forestgreen; }
       }
       .description {
         color: grey;

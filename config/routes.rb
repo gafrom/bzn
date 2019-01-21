@@ -10,6 +10,6 @@ Rails.application.routes.draw do
 
     get 'export/catalog(/:file_suffix)', to: 'export#catalog', as: :export_catalog
 
-    post '/reports', to: 'reports#create', as: :daily_report
+    post '/reports', to: 'reports#create', as: :daily_report_tasks
   end
 end

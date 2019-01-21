@@ -1,5 +1,4 @@
 class DailyReport
-  PATH_TO_FILE = Rails.root.join 'storage', 'export'
   LOFFSET = 2 # number of columns to the left of columns with dates
   ROFFSET = 1 # number of columns between columns with dates and columns with sold_count
   BATCH_SIZE = 10000
@@ -14,14 +13,17 @@ class DailyReport
 
   attr_reader :start_at, :end_at, :num_days, :column_index, :filename, :facts
 
-  def initialize(start_at, end_at)
-    @start_at = start_at.to_date
-    @end_at   = end_at.to_date
+  def initialize(task)
+    @start_at = task.start_at.to_date
+    @end_at   = task.end_at.to_date
     @num_days = (@end_at - @start_at + 1).to_i
 
     @column_index = @num_days.times.reduce({}) { |hsh, n| hsh[@start_at + n.days] = n; hsh }
 
-    @filename = "#{PATH_TO_FILE}_juice.xlsx"
+    @filename = task.filepath
+    dir = File.dirname @filename
+    Dir.mkdir dir unless File.exists? dir
+
     @facts_ids = DailyFact.where(created_at: @start_at..@end_at)
                           .order(:product_id, :created_at).pluck(:id)
 

@@ -50,3 +50,9 @@ ru:
   admin:
     home:
       create_report: Создать отчёт
+
+  daily_report_task:
+    statuses:
+      created: В очереди
+      dequeued: В процессе
+      completed: Готов

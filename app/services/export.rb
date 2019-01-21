@@ -9,6 +9,8 @@ module Export
     end
 
     def obsolescence_message_for(filename)
+      return "No file found" if no_file?(filename)
+
       diff = latest_updated_product.updated_at - file_modified_at(filename)
 
       "It is stale for \e[1m#{diff.duration}\e[0m.\n"\
@@ -17,7 +19,14 @@ module Export
     end
 
     def path_to_file(filename)
-      "#{PATH_TO_FILE}_#{filename}"
+      PATH_TO_FILE.join filename
+    end
+
+    def no_file?(filename)
+      dir = File.dirname path_to_file(filename)
+      Dir.mkdir dir unless File.directory? dir
+
+      !File.exists? path_to_file(filename)
     end
 
     private
@@ -28,13 +37,6 @@ module Export
 
     def file_modified_at(filename)
       File.mtime path_to_file(filename)
-    end
-
-    def no_file?(filename)
-      dir = File.dirname path_to_file(filename)
-      Dir.mkdir dir unless File.directory? dir
-
-      !File.exists? path_to_file(filename)
     end
   end
 end

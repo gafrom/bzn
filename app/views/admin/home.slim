@@ -1,35 +1,16 @@
 .one
-  h1.slidable= "Welcome, #{@user.name}"
-  p.slidable
+  h1= "Welcome, #{@user.name}"
+  p
     | Total products
     strong=< number_with_delimiter @products_count, delimiter: ' '
-  p.slidable
+  p
     | Total available products
     strong=< number_with_delimiter @available_products_count, delimiter: ' '
-  p.slidable
+  p
     | Last update
     strong=< l @latest_updated_product.updated_at, format: :succinct
 
-  .line.slidable
-
-  = form_tag admin_daily_report_path, method: :post, class: 'daily-report-form' do
-    .slidable
-      | С
-      = date_field_tag(:start_at, nil, class: 'field')
-      | по
-      = date_field_tag(:end_at, nil, class: 'field')
-      br
-    = submit_tag t('.create_report'), class: 'slidable'
-
-  .something.slidable
-    = link_to admin_export_catalog_path('juice.xlsx'), target: :_blank do
-      .link
-        .image 🍹
-        .text
-          .title Download juicy report
-          .description= file_description('juice.xlsx')
-
-  .something.slidable
+  .something
     = link_to admin_export_catalog_path('succinct.xlsx'), target: :_blank do
       .link
         .image 🌭
@@ -37,5 +18,26 @@
           .title Download old report
           .description= file_description('succinct.xlsx')
 
-.another
-  .christmas_tree.walkable= image_tag('tree2.jpg', width: 100)
+  .line
+
+  = form_for [:admin, DailyReportTask.new], class: 'daily-report-form' do |f|
+    .something
+      | С
+      = f.date_field(:start_at, class: 'field')
+      | по
+      = f.date_field(:end_at, class: 'field')
+      = f.submit t('.create_report')
+
+  ul.something
+    - @tasks.each do |task|
+      li.link
+        .image 🍹
+        .text
+          .title
+            - title = "#{task.start_at} - #{task.end_at}"
+            - if task.status == 'completed'
+              = link_to title, admin_export_catalog_path(task.filename), target: :_blank
+            - else
+              = title
+          .status(class=task.status)= t "daily_report_task.statuses.#{task.status}"
+          .description= file_description(task.filepath)
