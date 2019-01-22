@@ -1,7 +1,7 @@
 class DailyReport
   LOFFSET = 2 # number of columns to the left of columns with dates
   ROFFSET = 1 # number of columns between columns with dates and columns with sold_count
-  BATCH_SIZE = 10000
+  BATCH_SIZE = 250000 # it will keep memory consumption within 200Mb
 
   PRODUCT_ID   = 'product_id'.freeze
   REMOTE_ID    = 'remote_id'.freeze
@@ -24,8 +24,8 @@ class DailyReport
     dir = File.dirname @filename
     Dir.mkdir dir unless File.exists? dir
 
-    @facts_ids = DailyFact.where(created_at: @start_at..@end_at)
-                          .order(:product_id, :created_at).pluck(:id)
+    @facts_ids_query = DailyFact.where(created_at: @start_at..@end_at)
+                                .order(:product_id, :created_at)
 
     GC.start
   end
@@ -37,7 +37,7 @@ class DailyReport
         row = headers
         prices = []
 
-        @facts_ids.each_slice(BATCH_SIZE) do |ids|
+        batches_of_facts_ids do |ids|
           DailyFact.pluck_fields_for_report(ids).each do |fact|
             if product_id != fact[PRODUCT_ID]
               row[LOFFSET + @num_days] = average_price(prices) if product_id
@@ -60,6 +60,18 @@ class DailyReport
         row[LOFFSET + @num_days] = average_price(prices)
         sheet << row
       end
+    end
+  end
+
+  private
+
+  def batches_of_facts_ids
+    return to_enum :batches_of_facts_ids unless block_given?
+
+    total = @facts_ids_query.count
+
+    total.fdiv(BATCH_SIZE).ceil.times do |n|
+      yield @facts_ids_query.limit(BATCH_SIZE).offset(n * BATCH_SIZE).pluck(:id)
     end
   end
 
