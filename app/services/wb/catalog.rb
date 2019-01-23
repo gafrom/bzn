@@ -65,6 +65,7 @@ module Wb
 
       @processed_count = 0
       @requests_count = 0
+      @deleted_facts_count = 0
       @started_at = Time.zone.now
     end
 
@@ -81,6 +82,7 @@ module Wb
       end
 
       hide_unavailable_products unless only_new
+      delete_old_facts unless only_new
     ensure
       spit_results "sync:#{only_new ? 'latest' : 'all'}"
     end
@@ -332,6 +334,11 @@ module Wb
       end
     end
 
+    def delete_old_facts
+      query = DailyFact.where 'created_at < ?', 2.months.ago
+      @deleted_facts_count = query.delete_all
+    end
+
     def log_warning_for(remote_id, msg = 'No product found')
       @logger.warn "[SYNC_ORDERS_COUNTS] #{msg} for remote_id: #{remote_id}"
       @failures_count += 1
@@ -344,6 +351,7 @@ module Wb
                 "Updated: #{@updated_count}, "\
                 "Skipped: #{@skipped_count}, "\
                 "Hidden: #{@hidden_count}, "\
+                "Facts deleted: #{@deleted_facts_count}, "\
                 "Requests: #{@requests_count}, "\
                 "Failures: #{@failures_count}"
       @logger.info message
