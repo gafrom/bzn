@@ -3,8 +3,9 @@ default: &default
   encoding: unicode
   username: ''
   password: ''
-  pool: 16
+  pool: 8
   timeout: 5000
+  reaping_frequency: 60
 
 development:
   <<: *default
