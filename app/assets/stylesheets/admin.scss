@@ -163,6 +163,10 @@ input[type=submit] {
         margin-left: 10px;
 
         &.created { color: grey; }
+        &.enqueue {
+          top: 2px;
+          position: relative;
+        }
         &.dequeued { color: sandybrown; }
         &.completed { color: forestgreen; }
       }

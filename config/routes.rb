@@ -11,5 +11,9 @@ Rails.application.routes.draw do
     get 'export/catalog(/:file_suffix)', to: 'export#catalog', as: :export_catalog
 
     post '/reports', to: 'reports#create', as: :daily_report_tasks
+
+    resources :daily_report_tasks, only: [] do
+      member { get :enqueue }
+    end
   end
 end

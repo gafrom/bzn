@@ -40,4 +40,6 @@
             - else
               = title
           .status(class=task.status)= t "daily_report_task.statuses.#{task.status}"
+          - if task.status == 'dequeued'
+            .status.enqueue= link_to '🔃', enqueue_admin_daily_report_task_path(task)
           .description= file_description(task.filepath)
