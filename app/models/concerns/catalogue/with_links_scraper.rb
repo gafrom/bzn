@@ -82,7 +82,6 @@ module Catalogue::WithLinksScraper
 
     if response.success?
       block[JSON.parse(response.body)]
-      true
     else
       @logger.info "Got #{response.status} - treating it as the end of the journey. ✅"
       nil

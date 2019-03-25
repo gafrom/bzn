@@ -9,7 +9,7 @@ default: &default
 
 development:
   <<: *default
-  database: db/bzn_dev
+  database: db/bzn_dev_move_fast
 
 test:
   <<: *default

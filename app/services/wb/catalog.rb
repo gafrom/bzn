@@ -23,6 +23,7 @@ module Wb
     OC = 'ordersCount'.freeze
     MIN_PRICE = 'minPrice'.freeze
     COD1S = 'cod1S'.freeze
+    ORIGINAL_URL = 'originalUrl'.freeze
     COUPON_PRICE = 'couponPrice'.freeze
     PROMO_PRICES_HEADERS = {
       'Host' => ENV['KB_HOST'],
@@ -64,6 +65,8 @@ module Wb
       end
 
       @processed_count = 0
+      @processed_remote_ids = Set.new
+      @encountered_more_than_once = 0
       @requests_count = 0
       @deleted_facts_count = 0
       @started_at = Time.zone.now
@@ -72,17 +75,19 @@ module Wb
     def sync(only_new: false)
       urls = only_new ? latest_products_url : complete_urls_set
 
-      scrape_links urls, to: :nowhere, format: :json do |json|
+      scrape_links urls, to: :nowhere, format: :json, paginate: true do |json|
+        @logger.info "[SYNC] Found #{json['products'].size} products at #{json[ORIGINAL_URL]}"
         products_attrs = {}
 
         add_primary_stuff_to! products_attrs, json
         add_coupon_prices_to! products_attrs
 
         save(products_attrs, only_new) || break
+        json['products'] # pass a collection further
       end
 
-      hide_unavailable_products unless only_new
-      delete_old_facts unless only_new
+      # hide_unavailable_products unless only_new
+      # delete_old_facts unless only_new
     ensure
       spit_results "sync:#{only_new ? 'latest' : 'all'}"
     end
@@ -174,6 +179,8 @@ module Wb
     def add_primary_stuff_to!(hsh, json)
       json['products'].each do |attrs|
         remote_id = attrs[COD1S].to_i
+        next encounter_more_than_once if @processed_remote_ids.include? remote_id
+
         title = attrs[NAME]
         brand_title = attrs[BRAND]
 
@@ -198,9 +205,12 @@ module Wb
                               branding_attributes: branding_attributes,
                               url: "/catalog/#{remote_id}/detail.aspx",
                               remote_key: remote_id,
-                              category_id: 3,
+                              category_path: category_path_from(json),
+                              category_id: 1,
                               is_available: true
                             }
+
+        @processed_remote_ids << remote_id
       end
 
       # converting str keys to integers and then adding sizes
@@ -222,7 +232,13 @@ module Wb
       brand
     end
 
+    def category_path_from(json)
+      i = json[ORIGINAL_URL].index(??)
+      i ? json[ORIGINAL_URL][0...i] : json[ORIGINAL_URL]
+    end
+
     def add_coupon_prices_to!(products_attrs)
+      return if products_attrs.blank?
       prices_json = fetch_json payload: { nmList: products_attrs.keys }
 
       # [{"sale"=>20, "bonus"=>0, "couponPrice"=>1488, "nmId"=>5218132}, ...]
@@ -282,41 +298,20 @@ module Wb
     end
 
     def latest_products_url
-      '/catalog/zhenshchinam/odezhda/platya?pagesize=200&sort=newly'
+      raise '[ERROR] Latest products updates is not implemented.'
     end
 
     def complete_urls_set
-        # /catalog/zhenshchinam/odezhda/platya-maksi
-        # /catalog/zhenshchinam/odezhda/platya-midi?sort=priceup
-        # /catalog/zhenshchinam/odezhda/platya-midi?sort=pricedown
-        # /catalog/zhenshchinam/odezhda/platya-mini
-        # /catalog/zhenshchinam/odezhda/svadebnye-platya
-        # /catalog/zhenshchinam/odezhda/dzhnsovye-platya
-        # /catalog/zhenshchinam/odezhda/sarafany
-        # /catalog/zhenshchinam/odezhda/platya-s-tonkimi-bretelkami
+      @complete_urls_set ||= begin
+        l = 0
+        query_params = [501, 803, 1107, 1454, 1789, 2540, 3956, 5482, 7004, 9380, 13216, 170337]
+                         .map { |r| res = "?price=#{l};#{r}"; l = r + 1; res }
 
-      %w[
-        /catalog/zhenshchinam/odezhda/platya?price=0;900
-        /catalog/zhenshchinam/odezhda/platya?price=901;1100
-        /catalog/zhenshchinam/odezhda/platya?price=1101;1300
-        /catalog/zhenshchinam/odezhda/platya?price=1301;1400
-        /catalog/zhenshchinam/odezhda/platya?price=1401;1550
-        /catalog/zhenshchinam/odezhda/platya?price=1551;1700
-        /catalog/zhenshchinam/odezhda/platya?price=1701;1850
-        /catalog/zhenshchinam/odezhda/platya?price=1851;2000
-        /catalog/zhenshchinam/odezhda/platya?price=2001;2200
-        /catalog/zhenshchinam/odezhda/platya?price=2201;2400
-        /catalog/zhenshchinam/odezhda/platya?price=2401;2600
-        /catalog/zhenshchinam/odezhda/platya?price=2601;2800
-        /catalog/zhenshchinam/odezhda/platya?price=2801;3040
-        /catalog/zhenshchinam/odezhda/platya?price=3041;3350
-        /catalog/zhenshchinam/odezhda/platya?price=3351;3600
-        /catalog/zhenshchinam/odezhda/platya?price=3351;3700
-        /catalog/zhenshchinam/odezhda/platya?price=3701;4300
-        /catalog/zhenshchinam/odezhda/platya?price=4301;5000
-        /catalog/zhenshchinam/odezhda/platya?price=5001;7000
-        /catalog/zhenshchinam/odezhda/platya?price=7001;98000
-      ].map { |url| url << "#{url.include?('?') ? '&' : '?'}pagesize=200" }
+        File.open(Rails.root.join('storage', 'links'))
+            .map { |line| line.strip }
+            .product(query_params).map(&:join)
+            .map { |url| url << "#{url.include?(??) ? ?& : ??}pagesize=200" }
+      end
     end
 
     def hide_unavailable_products
@@ -344,12 +339,17 @@ module Wb
       @failures_count += 1
     end
 
+    def encounter_more_than_once
+      @encountered_more_than_once += 1
+    end
+
     def spit_results(tag = nil)
       message = "[RESULTS @ #{tag}] "\
                 "Total processed: #{@processed_count}, "\
                 "Created: #{@created_count}, "\
                 "Updated: #{@updated_count}, "\
                 "Skipped: #{@skipped_count}, "\
+                "Encountered more than once: #{@encountered_more_than_once}, "\
                 "Hidden: #{@hidden_count}, "\
                 "Facts deleted: #{@deleted_facts_count}, "\
                 "Requests: #{@requests_count}, "\

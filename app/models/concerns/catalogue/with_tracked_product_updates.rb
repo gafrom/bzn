@@ -47,6 +47,7 @@ module Catalogue::WithTrackedProductUpdates
 
   def update_product(attrs, product = nil)
     product = find_product attrs[:remote_key] unless product
+    return skip product if product.id && @processed.include?(product.id)
 
     product.assign_attributes attrs
     was_new_record = product.new_record?
