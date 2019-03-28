@@ -83,6 +83,8 @@ module Wb
         add_coupon_prices_to! products_attrs
 
         save(products_attrs, only_new) || break
+
+        sleep 0.2
         json['products'] # pass a collection further
       end
 
