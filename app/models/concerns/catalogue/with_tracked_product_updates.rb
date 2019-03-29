@@ -68,7 +68,8 @@ module Catalogue::WithTrackedProductUpdates
   end
 
   def save_daily_fact(product, changes = nil)
-    fact = DailyFact.find_or_initialize_by created_at: Date.today, product_id: product.id
+    # fact = DailyFact.find_or_initialize_by created_at: Date.today, product_id: product.id
+    fact = DailyFact.find_or_initialize_by product_id: product.id
 
     attributes_to_save = {
       product:      product, # to avoid db hitting
