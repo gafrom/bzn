@@ -1,6 +1,6 @@
 # server time, currently set to UTC
 
-every :friday, at: '10:07' do
+every :friday, at: '12:01' do
   rake 'sync:all supplier=wb'
 end
 
