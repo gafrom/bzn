@@ -90,6 +90,10 @@ module Wb
 
       # hide_unavailable_products unless only_new
       # delete_old_facts unless only_new
+    rescue => ex
+      @logger.error "[SYNC] Fatal error: #{ex}"
+      @logger.error ex.backtrace.join("\n")
+      raise ex
     ensure
       spit_results "sync:#{only_new ? 'latest' : 'all'}"
     end
@@ -107,6 +111,10 @@ module Wb
       end
 
       # @pool.await_completion
+    rescue => ex
+      @logger.error "[SYNC_ORDERS_COUNTS] Fatal error: #{ex}"
+      @logger.error ex.backtrace.join("\n")
+      raise ex
     ensure
       spit_results 'sync:orders_counts'
     end

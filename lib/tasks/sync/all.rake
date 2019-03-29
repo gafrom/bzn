@@ -28,13 +28,7 @@ namespace :sync do
   task all: :environment do
     supplier_module = ENV['supplier'].to_s.camelcase.constantize
 
-    begin
-      supplier_module::Catalog.new(ENV['host']).sync only_new: false
-    rescue Exception => ex
-      Rails.logger.error "[CATALOG_SYNC] Something went wrong: #{ex}"
-      Rails.logger.error ex.backtrace.join("\n")
-      raise ex
-    end
+    supplier_module::Catalog.new(ENV['host']).sync only_new: false
   end
 
   desc "Update all products's orders counts on local machine"
