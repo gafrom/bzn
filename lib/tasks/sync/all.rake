@@ -31,8 +31,9 @@ namespace :sync do
     begin
       supplier_module::Catalog.new(ENV['host']).sync only_new: false
     rescue Exception => ex
-      Rails.logger.error "[CATALOG_SYNC] Something went wrong."
-      Rails.logger.error(ex)
+      Rails.logger.error "[CATALOG_SYNC] Something went wrong: #{ex}"
+      Rails.logger.error ex.backtrace.join("\n")
+      raise ex
     end
   end
 
