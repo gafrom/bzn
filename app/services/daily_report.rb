@@ -10,6 +10,7 @@ class DailyReport
   SOLD_COUNT   = 'sold_count'.freeze
   CREATED_AT   = 'created_at'.freeze
   SIZES_COUNT  = 'sizes_count'.freeze
+  CATEGORY     = 'category'.freeze
 
   attr_reader :start_at, :end_at, :num_days, :column_index, :filename, :facts
 
@@ -52,6 +53,7 @@ class DailyReport
 
             row[LOFFSET + @num_days + ROFFSET + 0] = fact[SOLD_COUNT] if i == 0
             row[LOFFSET + @num_days + ROFFSET + 1] = fact[SOLD_COUNT] if i == @num_days - 1
+            row[LOFFSET + @num_days + ROFFSET + 2] = fact[CATEGORY]   if i == @num_days - 1
 
             prices[i] = fact[COUPON_PRICE]
           end
@@ -82,7 +84,7 @@ class DailyReport
       result << I18n.l(@start_at + n.days, format: :xlsx)
     end
 
-    result += ['avg coupon_price', 'orders OB', 'orders CB']
+    result += ['avg coupon_price', 'orders OB', 'orders CB', 'category']
   end
 
   def average_price(prices)
