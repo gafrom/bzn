@@ -13,7 +13,7 @@ class DailyReport
 
   attr_reader :start_at, :end_at, :num_days, :column_index, :filename, :facts
 
-  def initialize(task)
+  def initialize(task, daily_facts_query = nil)
     @start_at = task.start_at.to_date
     @end_at   = task.end_at.to_date
     @num_days = (@end_at - @start_at + 1).to_i
@@ -24,8 +24,8 @@ class DailyReport
     dir = File.dirname @filename
     Dir.mkdir dir unless File.exists? dir
 
-    @facts_ids_query = DailyFact.where(created_at: @start_at..@end_at)
-                                .order(:product_id, :created_at)
+    @facts_ids_query = daily_facts_query || DailyFact.where(created_at: @start_at..@end_at)
+    @facts_ids_query = @facts_ids_query.order(:product_id, :created_at)
 
     GC.start
   end
