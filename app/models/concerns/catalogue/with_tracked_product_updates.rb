@@ -71,7 +71,7 @@ module Catalogue::WithTrackedProductUpdates
     # fact = DailyFact.find_or_initialize_by created_at: Date.today, product_id: product.id
     # fact = DailyFact.find_or_initialize_by product_id: product.id
     fact = DailyFact.where(product_id: product.id).order(created_at: :desc).limit(1).first
-    fact = DailyFact.new(product_id: product.id) if !fact || fact.created_at < 1.week.ago
+    fact = DailyFact.new(product_id: product.id) if !fact || fact.created_at < 10.days.ago
 
     attributes_to_save = {
       product:      product, # to avoid db hitting
