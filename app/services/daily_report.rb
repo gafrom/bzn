@@ -52,7 +52,7 @@ class DailyReport
 
             row[LOFFSET + @num_days + ROFFSET + 0] = fact[SOLD_COUNT] if i == 0
             row[LOFFSET + @num_days + ROFFSET + 1] = fact[SOLD_COUNT] if i == 1
-            row[LOFFSET + @num_days + ROFFSET + 2] = fact[CATEGORY]   if i == 1
+            row[LOFFSET + @num_days + ROFFSET + 2] = fact[CATEGORY]   if fact[CATEGORY]
 
             prices[i] = fact[COUPON_PRICE]
           end
