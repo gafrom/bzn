@@ -4,6 +4,6 @@
 #   rake 'sync:all supplier=wb'
 # end
 
-every :tuesday, at: '19:30' do
-  rake 'sync:orders_counts supplier=wb'
-end
+# every :tuesday, at: '19:30' do
+#   rake 'sync:orders_counts supplier=wb'
+# end
