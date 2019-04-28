@@ -17,9 +17,8 @@ class DailyReport
   def initialize(task, daily_facts_query = nil)
     @start_at = task.start_at.to_date
     @end_at   = task.end_at.to_date
-    @num_days = (@end_at - @start_at + 1).to_i
-
-    @column_index = @num_days.times.reduce({}) { |hsh, n| hsh[@start_at + n.days] = n; hsh }
+    @num_days = 2
+    @mid_at   = '2019-04-18'.freeze
 
     @filename = task.filepath
     dir = File.dirname @filename
@@ -48,12 +47,12 @@ class DailyReport
               product_id = fact[PRODUCT_ID]
             end
 
-            i = @column_index[fact[CREATED_AT].to_date]
+            i = fact[CREATED_AT] < @mid_at ? 0 : 1
             row[LOFFSET + i] = fact[SIZES_COUNT]
 
             row[LOFFSET + @num_days + ROFFSET + 0] = fact[SOLD_COUNT] if i == 0
-            row[LOFFSET + @num_days + ROFFSET + 1] = fact[SOLD_COUNT] if i == @num_days - 1
-            row[LOFFSET + @num_days + ROFFSET + 2] = fact[CATEGORY]   if i == @num_days - 1
+            row[LOFFSET + @num_days + ROFFSET + 1] = fact[SOLD_COUNT] if i == 1
+            row[LOFFSET + @num_days + ROFFSET + 2] = fact[CATEGORY]   if i == 1
 
             prices[i] = fact[COUPON_PRICE]
           end
@@ -79,11 +78,8 @@ class DailyReport
 
   def headers
     result = ['brand', 'remote_id']
-
-    @num_days.times do |n|
-      result << I18n.l(@start_at + n.days, format: :xlsx)
-    end
-
+    result << I18n.l(@start_at, format: :xlsx)
+    result << I18n.l(@end_at,   format: :xlsx)
     result += ['avg coupon_price', 'orders OB', 'orders CB', 'category']
   end
 
