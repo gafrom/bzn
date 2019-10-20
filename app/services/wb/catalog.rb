@@ -27,7 +27,6 @@ module Wb
     FEEDBACK_COUNT = 'feedbackCount'.freeze
     RATING = 'rating'.freeze
     PROMO_PRICES_HEADERS = {
-      'Host' => ENV['KB_HOST'],
       'Accept' => '*/*',
       'Accept-Language' => 'ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3',
       'X-Requested-With' => 'XMLHttpRequest',
@@ -86,6 +85,8 @@ module Wb
 
       hide_unavailable_products unless only_new
       delete_old_facts unless only_new
+    rescue StandardError => ex
+      @logger.error ex
     ensure
       spit_results "sync:#{only_new ? 'latest' : 'all'}"
     end
@@ -103,6 +104,8 @@ module Wb
       end
 
       # @pool.await_completion
+    rescue StandardError => ex
+      @logger.error ex
     ensure
       spit_results 'sync:orders_counts'
     end
@@ -114,7 +117,7 @@ module Wb
 
       begin
         response = @joke_conn.get path
-      rescue Exception => ex
+      rescue StandardError => ex
         retry_num ||= 0
         if retry_num < 6
           @logger.error "[PROCESS_SINGLE_GET_JSON] Connection failed ☠ . ️"\
