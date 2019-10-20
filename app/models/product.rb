@@ -26,6 +26,7 @@
 #  coupon_price   :integer
 #  sold_count     :integer
 #  rating         :integer
+#  feedback_count :integer
 #
 # Indexes
 #

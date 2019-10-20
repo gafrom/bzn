@@ -15,6 +15,7 @@
 #  is_available   :boolean
 #  sizes          :string           default([]), is an Array
 #  created_at     :date             not null
+#  feedback_count :integer
 #
 # Indexes
 #

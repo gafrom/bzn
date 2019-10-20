@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190121155438) do
+ActiveRecord::Schema.define(version: 20191020114433) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -63,6 +63,7 @@ ActiveRecord::Schema.define(version: 20190121155438) do
     t.boolean "is_available"
     t.string "sizes", default: [], array: true
     t.date "created_at", null: false
+    t.integer "feedback_count"
     t.index ["brand_id"], name: "index_daily_facts_on_brand_id"
     t.index ["category_id"], name: "index_daily_facts_on_category_id"
     t.index ["created_at"], name: "index_daily_facts_on_created_at"
@@ -104,6 +105,7 @@ ActiveRecord::Schema.define(version: 20190121155438) do
     t.integer "coupon_price"
     t.integer "sold_count"
     t.integer "rating"
+    t.integer "feedback_count"
     t.index ["category_id"], name: "index_products_on_category_id"
     t.index ["remote_id"], name: "index_products_on_remote_id"
     t.index ["supplier_id"], name: "index_products_on_supplier_id"

@@ -83,6 +83,7 @@ module Catalogue::WithTrackedProductUpdates
                                 discount_price: product.discount_price,
                                 coupon_price:   product.coupon_price,
                                 sold_count:     product.sold_count,
+                                feedback_count: product.feedback_count,
                                 rating:         product.rating,
                                 sizes:          product.sizes
     else
