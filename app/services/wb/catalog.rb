@@ -6,7 +6,7 @@ module Wb
     extend Catalogue::WithSupplierClassMethods
 
     LINK_SPL_CHR = ','.freeze
-    NMID = 'nmId'.freeze
+    ID = 'id'.freeze
     ATTR = 'data-colors'.freeze
     SIZES = 'sizes'.freeze
     NM = 'nm'.freeze
@@ -23,7 +23,9 @@ module Wb
     OC = 'ordersCount'.freeze
     MIN_PRICE = 'minPrice'.freeze
     COD1S = 'cod1S'.freeze
-    COUPON_PRICE = 'couponPrice'.freeze
+    COUPON_PRICE = 'salePrice'.freeze
+    FEEDBACK_COUNT = 'feedbackCount'.freeze
+    RATING = 'rating'.freeze
     PROMO_PRICES_HEADERS = {
       'Host' => ENV['KB_HOST'],
       'Accept' => '*/*',
@@ -45,11 +47,12 @@ module Wb
       'Pragma' => 'no-cache',
       'Cache-Control' => 'no-cache'
     }.freeze
+    API_V1_URL = ENV['API_V1_URL']
 
     def initialize(*)
       super
 
-      @promo_prices_conn = Faraday.new(url: "#{supplier.host}/content/cardspromo") do |conn|
+      @promo_prices_conn = Faraday.new(url: API_V1_URL) do |conn|
         conn.headers.merge! PROMO_PRICES_HEADERS
         conn.adapter :net_http
       end
@@ -76,7 +79,7 @@ module Wb
         products_attrs = {}
 
         add_primary_stuff_to! products_attrs, json
-        add_coupon_prices_to! products_attrs
+        add_coupon_prices_and_feedback_count_to! products_attrs
 
         save(products_attrs, only_new) || break
       end
@@ -222,17 +225,26 @@ module Wb
       brand
     end
 
-    def add_coupon_prices_to!(products_attrs)
-      prices_json = fetch_json payload: { nmList: products_attrs.keys }
+    def add_coupon_prices_and_feedback_count_to!(products_attrs)
+      response_json = fetch_json_from_api_v1("nm=#{products_attrs.keys.join(?;)}")
 
-      # [{"sale"=>20, "bonus"=>0, "couponPrice"=>1488, "nmId"=>5218132}, ...]
-      prices_arr = JSON.parse prices_json
+      response = JSON.parse response_json
+      prices_arr = response.dig('data', 'products')
+
+      if prices_arr.blank?
+        @logger.info "[ADD_COUPON_PRICES_AND_FEEDBACK_COUNT_TO!] [ERROR] Got empty JSON - No salePrices added. ✅"
+        return
+      end
 
       # adding
       prices_arr.each do |attrs|
-        product_attrs = products_attrs[attrs[NMID]]
+        product_attrs = products_attrs[attrs[ID]]
         product_attrs[:coupon_price] = attrs[COUPON_PRICE]
+        product_attrs[:feedback_count] = attrs[FEEDBACK_COUNT]
       end
+    rescue JSON::ParserError => error
+      @logger.info "[ADD_COUPON_PRICES_AND_FEEDBACK_COUNT_TO!] [ERROR] Got wrong JSON (#{error.message}) - No salePrices added. ✅"
+      nil
     end
 
     def save(products_attrs, only_new = false)
@@ -250,23 +262,23 @@ module Wb
       all_were_new
     end
 
-    def fetch_json(payload:)
-      @logger.info "POST [JSON] to #{@promo_prices_conn.url_prefix} ..."
+    def fetch_json_from_api_v1(query)
+      @logger.info "GET [JSON] to #{@promo_prices_conn.url_prefix} ..."
 
       begin
-        response = @promo_prices_conn.post do |req|
-          req.body = URI.encode_www_form(payload)
+        response = @promo_prices_conn.get do |req|
+          req.params.merge_query query
         end
       rescue Exception => ex
         retry_num ||= 0
         if retry_num < 6
-          @logger.error "[FETCH_JSON] Connection failed ☠ . ️"\
+          @logger.error "[FETCH_JSON_FROM_API_V1] Connection failed ☠ . ️"\
                         "Reconnecting... (retry ##{retry_num += 1})"
           sleep 1.5**retry_num
           retry
         end
 
-        @logger.error "[FETCH_JSON] Terminating after #{retry_num + 1} attempts."
+        @logger.error "[FETCH_JSON_FROM_API_V1] Terminating after #{retry_num + 1} attempts."
         @logger.error ex
       end
 
