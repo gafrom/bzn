@@ -5,6 +5,15 @@ done = cat.new_record? ? 'Created' : 'Already exists'
 cat.save
 puts "#{done} category id #{cat.id} => #{cat_title}"
 
+puts 'Creating some categories ...'
+categories = ["Верхняя одежда", "Платья", "Костюмы и комплекты", "Футболки, блузы, свитера", "Комбинезоны", "Брюки, леггинсы, шорты", "Юбки", "Спортивные костюмы", "Купальники, пляжные туники", "Сумки, клатчи, кошельки", "Одежда для дома", "Перчатки, шарфы, шапки"]
+categories.each do |cat_title|
+  cat = Category.find_or_initialize_by title: cat_title
+  done = cat.new_record? ? 'Created' : 'Already exists'
+  cat.save
+  puts "#{done} category id #{cat.id} => #{cat_title}"
+end
+
 puts 'Creating colors ...'
 colors = %w[Мультиколор Черный Белый Серый Бирюзовый Зеленый Розовый Красный Бежевый Желтый Коричневый Голубой Синий Фиолетовый Золотистый Серебристый Оранжевый Принт]
 colors.each do |title|
