@@ -20,6 +20,10 @@ every :sunday, at: '06:06' do
   rake 'sync:all supplier=wb export:xlsx:wb'
 end
 
-every :sunday, at: '08:08' do
-  rake 'sync:orders_counts supplier=wb export:xlsx:wb'
+every :sunday, at: '12:37' do
+  rake 'sync:all supplier=wb export:xlsx:wb'
 end
+
+# every :sunday, at: '08:08' do
+#   rake 'sync:orders_counts supplier=wb export:xlsx:wb'
+# end
