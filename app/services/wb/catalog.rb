@@ -301,15 +301,6 @@ module Wb
     end
 
     def complete_urls_set
-        # /catalog/zhenshchinam/odezhda/platya-maksi
-        # /catalog/zhenshchinam/odezhda/platya-midi?sort=priceup
-        # /catalog/zhenshchinam/odezhda/platya-midi?sort=pricedown
-        # /catalog/zhenshchinam/odezhda/platya-mini
-        # /catalog/zhenshchinam/odezhda/svadebnye-platya
-        # /catalog/zhenshchinam/odezhda/dzhnsovye-platya
-        # /catalog/zhenshchinam/odezhda/sarafany
-        # /catalog/zhenshchinam/odezhda/platya-s-tonkimi-bretelkami
-
       %w[
         /catalog/zhenshchinam/odezhda/platya?price=0;900
         /catalog/zhenshchinam/odezhda/platya?price=901;1100
@@ -319,18 +310,33 @@ module Wb
         /catalog/zhenshchinam/odezhda/platya?price=1551;1700
         /catalog/zhenshchinam/odezhda/platya?price=1701;1850
         /catalog/zhenshchinam/odezhda/platya?price=1851;2000
-        /catalog/zhenshchinam/odezhda/platya?price=2001;2200
-        /catalog/zhenshchinam/odezhda/platya?price=2201;2400
-        /catalog/zhenshchinam/odezhda/platya?price=2401;2600
-        /catalog/zhenshchinam/odezhda/platya?price=2601;2800
-        /catalog/zhenshchinam/odezhda/platya?price=2801;3040
-        /catalog/zhenshchinam/odezhda/platya?price=3041;3350
-        /catalog/zhenshchinam/odezhda/platya?price=3351;3600
-        /catalog/zhenshchinam/odezhda/platya?price=3351;3700
-        /catalog/zhenshchinam/odezhda/platya?price=3701;4300
-        /catalog/zhenshchinam/odezhda/platya?price=4301;5000
-        /catalog/zhenshchinam/odezhda/platya?price=5001;7000
-        /catalog/zhenshchinam/odezhda/platya?price=7001;98000
+        /catalog/zhenshchinam/odezhda/platya?price=2001;2100
+        /catalog/zhenshchinam/odezhda/platya?price=2101;2200
+        /catalog/zhenshchinam/odezhda/platya?price=2201;2300
+        /catalog/zhenshchinam/odezhda/platya?price=2301;2400
+        /catalog/zhenshchinam/odezhda/platya?price=2401;2500
+        /catalog/zhenshchinam/odezhda/platya?price=2501;2600
+        /catalog/zhenshchinam/odezhda/platya?price=2601;2700
+        /catalog/zhenshchinam/odezhda/platya?price=2701;2800
+        /catalog/zhenshchinam/odezhda/platya?price=2801;2910
+        /catalog/zhenshchinam/odezhda/platya?price=2911;3040
+        /catalog/zhenshchinam/odezhda/platya?price=3041;3150
+        /catalog/zhenshchinam/odezhda/platya?price=3151;3250
+        /catalog/zhenshchinam/odezhda/platya?price=3251;3370
+        /catalog/zhenshchinam/odezhda/platya?price=3371;3520
+        /catalog/zhenshchinam/odezhda/platya?price=3521;3700
+        /catalog/zhenshchinam/odezhda/platya?price=3701;3800
+        /catalog/zhenshchinam/odezhda/platya?price=3801;3900
+        /catalog/zhenshchinam/odezhda/platya?price=3901;4100
+        /catalog/zhenshchinam/odezhda/platya?price=4101;4300
+        /catalog/zhenshchinam/odezhda/platya?price=4301;4600
+        /catalog/zhenshchinam/odezhda/platya?price=4601;5000
+        /catalog/zhenshchinam/odezhda/platya?price=5001;5500
+        /catalog/zhenshchinam/odezhda/platya?price=5501;6000
+        /catalog/zhenshchinam/odezhda/platya?price=6001;7000
+        /catalog/zhenshchinam/odezhda/platya?price=7001;8000
+        /catalog/zhenshchinam/odezhda/platya?price=8001;9000
+        /catalog/zhenshchinam/odezhda/platya?price=9001;98000
       ].map { |url| url << "#{url.include?('?') ? '&' : '?'}pagesize=200" }
     end
 
