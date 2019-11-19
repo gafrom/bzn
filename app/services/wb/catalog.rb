@@ -47,6 +47,7 @@ module Wb
       'Cache-Control' => 'no-cache'
     }.freeze
     API_V1_URL = ENV['API_V1_URL']
+    OWN_PATH = ENV['KB_OWN_PATH']
 
     def initialize(*)
       super
@@ -67,7 +68,10 @@ module Wb
 
       @processed_count = 0
       @requests_count = 0
-      @deleted_facts_count = 0
+      @created_daily_facts_count = 0
+      @deleted_daily_facts_count = 0
+      @created_hourly_facts_count = 0
+      @deleted_hourly_facts_count = 0
       @started_at = Time.zone.now
     end
 
@@ -77,10 +81,10 @@ module Wb
       scrape_links urls, to: :nowhere, format: :json do |json|
         products_attrs = {}
 
-        add_primary_stuff_to! products_attrs, json
+        add_primary_stuff! to: products_attrs, from: json, override: { category_id: 3 }
         add_coupon_prices_and_feedback_count_to! products_attrs
 
-        save(products_attrs, only_new) || break
+        save(products_attrs, only_new: only_new) || break
       end
 
       hide_unavailable_products unless only_new
@@ -89,6 +93,22 @@ module Wb
       @logger.error ex
     ensure
       spit_results "sync:#{only_new ? 'latest' : 'all'}"
+    end
+
+    def sync_own
+      scrape_links OWN_PATH, to: :nowhere, format: :json do |json|
+        products_attrs = {}
+
+        add_primary_stuff! to: products_attrs, from: json
+
+        save products_attrs, create_hourly_facts: true
+      end
+
+      delete_old_hourly_facts
+    rescue StandardError => ex
+      @logger.error ex
+    ensure
+      spit_results 'sync:own'
     end
 
     def sync_orders_counts
@@ -177,8 +197,8 @@ module Wb
              .distinct
     end
 
-    def add_primary_stuff_to!(hsh, json)
-      json['products'].each do |attrs|
+    def add_primary_stuff!(to:, from:, override: nil)
+      from['products'].each do |attrs|
         remote_id = attrs[COD1S].to_i
         title = attrs[NAME]
         brand_title = attrs[BRAND]
@@ -193,26 +213,37 @@ module Wb
         end
 
         branding_attributes = { brand_id: brand_from(brand_title).id }
+        category_id = if override&.key?(:category_id)
+                        override[:category_id]
+                      else
+                        Categorizer.safe_id_from_title(title)
+                      end
 
-        hsh[remote_id]  ||= {
-                              title: title,
-                              remote_id: remote_id,
-                              original_price: attrs[PRICE],
-                              discount_price: attrs[MIN_PRICE],
-                              rating: attrs[MARK],
-                              color: attrs[COLOR],
-                              branding_attributes: branding_attributes,
-                              url: "/catalog/#{remote_id}/detail.aspx",
-                              remote_key: remote_id,
-                              category_id: 3,
-                              is_available: true
-                            }
+        unless category_id
+          @logger.error "[ADD_PRIMARY_STUFF_TO] Cannot infer category "\
+                        "from title: #{title}, remote_id: #{remote_id}"
+          next
+        end
+
+        to[remote_id] ||= {
+          title: title,
+          remote_id: remote_id,
+          original_price: attrs[PRICE],
+          discount_price: attrs[MIN_PRICE],
+          rating: attrs[MARK],
+          color: attrs[COLOR],
+          branding_attributes: branding_attributes,
+          url: "/catalog/#{remote_id}/detail.aspx",
+          remote_key: remote_id,
+          category_id: category_id,
+          is_available: true
+        }
       end
 
       # converting str keys to integers and then adding sizes
-      json['shortProducts'].tap { |h| h.keys.each { |key| h[key.to_i] = h.delete(key) } }
+      from['shortProducts'].tap { |h| h.keys.each { |key| h[key.to_i] = h.delete(key) } }
                            .each do |remote_id, attrs|
-        product_attrs = hsh[remote_id]
+        product_attrs = to[remote_id]
         next unless product_attrs
 
         product_attrs[:sizes] = attrs[SIZES].map { |size| size[NM] }
@@ -250,12 +281,14 @@ module Wb
       nil
     end
 
-    def save(products_attrs, only_new = false)
+    def save(products_attrs, opts = {})
       all_were_new = products_attrs.each do |remote_id, attrs|
         product = Product.find_or_initialize_by remote_id: remote_id, supplier: supplier
-        break false if only_new && product.persisted?
+        break false if opts[:only_new] && product.persisted?
 
         update_product attrs, product
+        create_hourly_fact(product) if opts[:create_hourly_facts]
+
         @processed_count += 1
       end
 
@@ -357,7 +390,12 @@ module Wb
 
     def delete_old_facts
       query = DailyFact.where 'created_at < ?', 2.months.ago
-      @deleted_facts_count = query.delete_all
+      @deleted_daily_facts_count = query.delete_all
+    end
+
+    def delete_old_hourly_facts
+      query = HourlyFact.where 'created_at < ?', 2.months.ago
+      @deleted_hourly_facts_count = query.delete_all
     end
 
     def log_warning_for(remote_id, msg = 'No product found')
@@ -372,7 +410,10 @@ module Wb
                 "Updated: #{@updated_count}, "\
                 "Skipped: #{@skipped_count}, "\
                 "Hidden: #{@hidden_count}, "\
-                "Facts deleted: #{@deleted_facts_count}, "\
+                "Daily facts created/deleted: #{@created_daily_facts_count}/"\
+                                             "#{@deleted_daily_facts_count}, "\
+                "Hourly facts created/deleted: #{@created_hourly_facts_count}/"\
+                                              "#{@deleted_hourly_facts_count}, "\
                 "Requests: #{@requests_count}, "\
                 "Failures: #{@failures_count}"
       @logger.info message

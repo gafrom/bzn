@@ -1,5 +1,9 @@
 # server time, currently set to UTC
 
+every '26 * * * *' do
+  rake 'sync:own supplier=wb'
+end
+
 every '7,37 0-21,23 * * 0-1,3-6' do
   # trick to set other env variables:
   # rake 'export:xlsx:wb', environment: 'production RAILS_LOG_LEVEL=1'

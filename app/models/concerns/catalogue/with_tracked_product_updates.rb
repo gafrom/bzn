@@ -68,6 +68,7 @@ module Catalogue::WithTrackedProductUpdates
 
   def save_daily_fact(product, changes = nil)
     fact = DailyFact.find_or_initialize_by created_at: Date.today, product_id: product.id
+    was_new_record = fact.new_record?
 
     attributes_to_save = {
       product:      product, # to avoid db hitting
@@ -95,6 +96,13 @@ module Catalogue::WithTrackedProductUpdates
 
     fact.assign_attributes attributes_to_save
     fact.save
+
+    increment_created_daily_facts(product) if was_new_record
+  end
+
+  def create_hourly_fact(product)
+    HourlyFact.create product_id: product.id, sizes: product.sizes
+    increment_created_hourly_facts(product)
   end
 
   def hide_removed_products
@@ -117,6 +125,16 @@ module Catalogue::WithTrackedProductUpdates
   def increment_created(product)
     log_success_for product.url, :created
     @created_count += 1
+  end
+
+  def increment_created_daily_facts(product)
+    # no logging here, too muchichno
+    @created_daily_facts_count += 1
+  end
+
+  def increment_created_hourly_facts(product)
+    log_success_for product.url, :created_hourly_fact
+    @created_hourly_facts_count += 1
   end
 
   def increment_updated(product, changes)

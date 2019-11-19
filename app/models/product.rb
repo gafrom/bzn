@@ -52,6 +52,9 @@ class Product < ApplicationRecord
   has_many :propertings, dependent: :destroy
   has_many :properties, through: :propertings
 
+  has_many :daily_facts
+  has_many :hourly_facts
+
   has_one :branding, dependent: :destroy
   accepts_nested_attributes_for :branding, update_only: true
   has_one :brand, through: :branding
