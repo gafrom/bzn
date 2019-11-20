@@ -405,15 +405,13 @@ module Wb
 
     def spit_results(tag = nil)
       message = "[RESULTS @ #{tag}] "\
-                "Total processed: #{@processed_count}, "\
+                "Total: #{@processed_count}, "\
                 "Created: #{@created_count}, "\
                 "Updated: #{@updated_count}, "\
                 "Skipped: #{@skipped_count}, "\
                 "Hidden: #{@hidden_count}, "\
-                "Daily facts created/deleted: #{@created_daily_facts_count}/"\
-                                             "#{@deleted_daily_facts_count}, "\
-                "Hourly facts created/deleted: #{@created_hourly_facts_count}/"\
-                                              "#{@deleted_hourly_facts_count}, "\
+                "Daily facts: #{@created_daily_facts_count}/#{@deleted_daily_facts_count}, "\
+                "Hourly facts: #{@created_hourly_facts_count}/#{@deleted_hourly_facts_count}, "\
                 "Requests: #{@requests_count}, "\
                 "Failures: #{@failures_count}"
       @logger.info message
