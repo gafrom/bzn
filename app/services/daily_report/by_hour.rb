@@ -11,7 +11,7 @@ class DailyReport::ByHour < DailyReport::Base
 
   def initialize(task)
     super
-    @facts_ids_query = HourlyFact.where(created_at: @start_at..@end_at)
+    @facts_ids_query = HourlyFact.where(created_at: @start_at..@end_at.end_of_day)
                                  .order(:product_id, :created_at)
   end
 
