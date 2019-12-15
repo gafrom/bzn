@@ -1,7 +1,7 @@
 class Admin::ExportController < AdminController
   respond_to :csv, :xlsx
 
-  before_action :update_file
+  before_action :check_that_file_exists
 
   def catalog
     file = File.open Export.path_to_file(filename)
@@ -10,12 +10,8 @@ class Admin::ExportController < AdminController
 
   private
 
-  def update_file
+  def check_that_file_exists
     head 404 if Export.no_file? filename
-
-    return unless Export.obsolete? filename
-    # otherwise just log it
-    Rails.logger.warn "Served obsolete xlsx file. #{Export.obsolescence_message_for filename}"
   end
 
   def mime_type

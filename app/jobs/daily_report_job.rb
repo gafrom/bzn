@@ -7,7 +7,7 @@ class DailyReportJob < ApplicationJob
 
     task.update_attributes dequeued_at: Time.zone.now, status: :dequeued
     # to address the memory leak issue https://github.com/mperham/sidekiq/issues/3752
-    ActiveRecord::Base.uncached { DailyReport.new(task).store }
+    ActiveRecord::Base.uncached { DailyReport::Factory.build(task).store }
     task.update_attributes status: :completed
 
     GC.start

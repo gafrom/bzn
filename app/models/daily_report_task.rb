@@ -10,6 +10,7 @@
 #  filename    :string
 #  created_at  :datetime         not null
 #  updated_at  :datetime         not null
+#  type        :string
 #
 
 class DailyReportTask < ApplicationRecord
@@ -31,7 +32,11 @@ class DailyReportTask < ApplicationRecord
   private
 
   def set_filename
-    self.filename = "daily-report--#{start_at}-#{end_at}--#{SecureRandom.hex(3)}.xlsx"
+    self.filename = "#{dashed_class_name}--#{start_at}-#{end_at}--#{SecureRandom.hex(3)}.xlsx"
+  end
+
+  def dashed_class_name
+    self.class.model_name.plural.tr('_','-')
   end
 
   def set_status

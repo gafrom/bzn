@@ -1,7 +1,6 @@
-class DailyReport
+class DailyReport::ByDay < DailyReport::Base
   LOFFSET = 2 # number of columns to the left of columns with dates
   ROFFSET = 1 # number of columns between columns with dates and columns with sold_count
-  BATCH_SIZE = 250000 # it will keep memory consumption within 200Mb
 
   PRODUCT_ID   = 'product_id'.freeze
   REMOTE_ID    = 'remote_id'.freeze
@@ -11,23 +10,10 @@ class DailyReport
   CREATED_AT   = 'created_at'.freeze
   SIZES_COUNT  = 'sizes_count'.freeze
 
-  attr_reader :start_at, :end_at, :num_days, :column_index, :filename, :facts
-
   def initialize(task)
-    @start_at = task.start_at.to_date
-    @end_at   = task.end_at.to_date
-    @num_days = (@end_at - @start_at + 1).to_i
-
-    @column_index = @num_days.times.reduce({}) { |hsh, n| hsh[@start_at + n.days] = n; hsh }
-
-    @filename = task.filepath
-    dir = File.dirname @filename
-    Dir.mkdir dir unless File.exists? dir
-
+    super
     @facts_ids_query = DailyFact.where(created_at: @start_at..@end_at)
                                 .order(:product_id, :created_at)
-
-    GC.start
   end
 
   def store
@@ -47,7 +33,7 @@ class DailyReport
               product_id = fact[PRODUCT_ID]
             end
 
-            i = @column_index[fact[CREATED_AT].to_date]
+            i = @date_indexing[fact[CREATED_AT].to_date]
             row[LOFFSET + i] = fact[SIZES_COUNT]
 
             row[LOFFSET + @num_days + ROFFSET + 0] = fact[SOLD_COUNT] if i == 0
@@ -63,18 +49,6 @@ class DailyReport
     end
   end
 
-  private
-
-  def batches_of_facts_ids
-    return to_enum :batches_of_facts_ids unless block_given?
-
-    total = @facts_ids_query.count
-
-    total.fdiv(BATCH_SIZE).ceil.times do |n|
-      yield @facts_ids_query.limit(BATCH_SIZE).offset(n * BATCH_SIZE).pluck(:id)
-    end
-  end
-
   def headers
     result = ['brand', 'remote_id']
 
@@ -83,17 +57,5 @@ class DailyReport
     end
 
     result += ['avg coupon_price', 'orders OB', 'orders CB']
-  end
-
-  def average_price(prices)
-    sum = 0
-    size = 0
-    prices.each do |price|
-      next unless price
-      sum += price
-      size += 1
-    end
-
-    sum.fdiv(size).to_i if size.positive?
   end
 end

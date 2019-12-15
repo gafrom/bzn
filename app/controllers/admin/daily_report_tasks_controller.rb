@@ -1,20 +1,11 @@
-class Admin::DailyReportTasksController < AdminController
-  before_action :set_task
-
-  def enqueue
-    return redirect_to admin_root_path, alert: 'Уже есть в очереди' if enqueued?
-
-    DailyReportJob.perform_later @task.id
-    redirect_to admin_root_path, notice: 'Работа добавлена в очередь'
-  end
-
+class Admin::DailyReportTasksController < Admin::ReportTasksController
   private
 
-  def set_task
-    @task = DailyReportTask.find(params[:id])
+  def report_job_class
+    DailyReportJob
   end
 
-  def enqueued?
-    Sidekiq::Queue.new.find { |job| job&.args&.first&.[]('arguments')&.first == @task.id }
+  def report_task_class
+    DailyReportTask
   end
 end

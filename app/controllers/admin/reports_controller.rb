@@ -13,6 +13,6 @@ class Admin::ReportsController < ApplicationController
   private
 
   def task_params
-    params.require(:daily_report_task).permit(:start_at, :end_at)
+    params.require(:daily_report_task).permit(:start_at, :end_at, :type)
   end
 end

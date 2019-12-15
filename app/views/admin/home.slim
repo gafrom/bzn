@@ -6,9 +6,10 @@
   p
     | Total available products
     strong=< number_with_delimiter @available_products_count, delimiter: ' '
-  p
-    | Last update
-    strong=< l @latest_updated_product.updated_at, format: :succinct
+  - if @latest_updated_product
+    p
+      | Last update
+      strong=< l @latest_updated_product.updated_at, format: :succinct
 
   .something
     = link_to admin_export_catalog_path('succinct.xlsx'), target: :_blank do
@@ -18,6 +19,18 @@
           .title Download old report
           .description= file_description('succinct.xlsx')
 
+
+  h2= t '.reports_creating'
+
+  = form_for [:admin, DailyReportTask.new], class: 'daily-report-form' do |f|
+    .something
+      | С
+      = f.date_field(:start_at, class: 'field')
+      | по
+      = f.date_field(:end_at, class: 'field')
+      = f.hidden_field(:type, value: 'DailyReportByHourTask')
+      = f.submit t('.create_report_by_hour')
+
   .line
 
   = form_for [:admin, DailyReportTask.new], class: 'daily-report-form' do |f|
@@ -26,7 +39,12 @@
       = f.date_field(:start_at, class: 'field')
       | по
       = f.date_field(:end_at, class: 'field')
+      = f.hidden_field(:type, value: 'DailyReportByDayTask')
       = f.submit t('.create_report')
+
+  .line
+
+  h2= t '.reports'
 
   ul.something
     - @tasks.each do |task|
@@ -34,7 +52,7 @@
         .image 🍹
         .text
           .title
-            - title = "#{task.start_at} - #{task.end_at}"
+            - title = t(".task_title.#{task.type}") + ": #{task.start_at} - #{task.end_at}"
             - if task.status == 'completed'
               = link_to title, admin_export_catalog_path(task.filename), target: :_blank
             - else
