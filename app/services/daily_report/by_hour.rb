@@ -1,3 +1,5 @@
+require 'numo/narray'
+
 class DailyReport::ByHour < DailyReport::Base
   NUM_HOURS = 24
   PRODUCT_ID   = 'product_id'.freeze
