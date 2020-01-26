@@ -1,47 +1,39 @@
 namespace :sync do
-  desc 'Scrape over all links and store them into DB'
-  task links: :environment do
-    supplier_module = ENV['supplier'].to_s.camelcase.constantize
-    supplier_module::Catalog.new(ENV['host'])
-                            .sync_links_from :complete_urls_set, till_first_existing: false
-
-    Rails.logger.info "Scraped all links and stored them to DB ✅"
-  end
-
-  desc 'Scrape over recently added links and store them into DB'
-  task latest_links: :environment do
-    supplier_module = ENV['supplier'].to_s.camelcase.constantize
-    supplier_module::Catalog.new(ENV['host'])
-                            .sync_links_from :latest_products_url, till_first_existing: true
-
-    Rails.logger.info "Scraped latest links, stored them to DB and went home ✅"
-  end
-
   desc 'Update only latest products on local machine'
   task latest: :environment do
-    supplier_module = ENV['supplier'].to_s.camelcase.constantize
-
-    supplier_module::Catalog.new(ENV['host']).sync only_new: true
+    supplier = Supplier.from_env
+    supplier.sync_latest supplier.each_url_for(:latest_sync)
   end
 
   desc 'Update all products on local machine'
   task all: :environment do
-    supplier_module = ENV['supplier'].to_s.camelcase.constantize
-
-    supplier_module::Catalog.new(ENV['host']).sync only_new: false
+    supplier = Supplier.from_env
+    supplier.sync_daily supplier.each_url_for(:narrow_sync)
   end
 
-  desc 'Update own products on local machine'
+  desc 'Update products on local machine with hourly facts'
   task own: :environment do
-    supplier_module = ENV['supplier'].to_s.camelcase.constantize
-
-    supplier_module::Catalog.new(ENV['host']).sync_own
+    supplier = Supplier.from_env
+    supplier.sync_hourly supplier.each_url_for(:own_sync)
   end
 
-  desc "Update all products's orders counts on local machine"
+  desc "Update all products' orders counts on local machine"
   task orders_counts: :environment do
-    supplier_module = ENV['supplier'].to_s.camelcase.constantize
+    Supplier.from_env.sync_orders_counts
+  end
 
-    supplier_module::Catalog.new(ENV['host']).sync_orders_counts
+  desc "Create sync wide task"
+  task wide: :environment do
+    supplier = Supplier.from_env
+
+    ActiveRecord::Base.transaction do
+      task = WideSyncTask.create! supplier: supplier
+
+      supplier.each_url_for(:wide_sync) do |url|
+        SourceLink.create! url: url, wide_sync_task: task
+      end
+    end
+
+    task.enqueue_job
   end
 end

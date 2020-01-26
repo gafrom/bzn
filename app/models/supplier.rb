@@ -10,9 +10,14 @@
 #
 
 class Supplier < ApplicationRecord
+  STORAGE_PATH = Rails.root.join('storage')
+  FILE_SUFFIX  = '.local'.freeze unless Rails.env.production?
+
   has_many :products
 
   validates :name, :host, presence: true, uniqueness: true
+
+  delegate :sync_latest, :sync_daily, :sync_hourly, :sync_orders_counts, to: :catalog
 
   def domain
     name.constantize
@@ -20,5 +25,19 @@ class Supplier < ApplicationRecord
 
   def slug
     name.underscore
+  end
+
+  def each_url_for(urls_group_slug)
+    path = STORAGE_PATH.join "#{slug}_#{urls_group_slug}_urls#{FILE_SUFFIX}"
+
+    File.foreach path, chomp: true
+  end
+
+  def catalog
+    @catalog ||= domain::Catalog.new
+  end
+
+  def self.from_env
+    find_by! name: ENV[name.downcase].to_s.camelcase
   end
 end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20191203203725) do
+ActiveRecord::Schema.define(version: 20200109190556) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -135,6 +135,15 @@ ActiveRecord::Schema.define(version: 20191203203725) do
     t.index ["property_id", "product_id"], name: "index_propertings_on_property_id_and_product_id"
   end
 
+  create_table "source_links", force: :cascade do |t|
+    t.bigint "wide_sync_task_id"
+    t.string "status"
+    t.string "url"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["wide_sync_task_id"], name: "index_source_links_on_wide_sync_task_id"
+  end
+
   create_table "suppliers", force: :cascade do |t|
     t.string "name"
     t.string "host"
@@ -158,6 +167,13 @@ ActiveRecord::Schema.define(version: 20191203203725) do
     t.index ["email"], name: "index_users_on_email", unique: true
   end
 
+  create_table "wide_sync_tasks", force: :cascade do |t|
+    t.bigint "supplier_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["supplier_id"], name: "index_wide_sync_tasks_on_supplier_id"
+  end
+
   add_foreign_key "brandings", "brands"
   add_foreign_key "brandings", "products"
   add_foreign_key "colorations", "colors"
@@ -168,4 +184,6 @@ ActiveRecord::Schema.define(version: 20191203203725) do
   add_foreign_key "hourly_facts", "products"
   add_foreign_key "products", "categories"
   add_foreign_key "products", "suppliers"
+  add_foreign_key "source_links", "wide_sync_tasks"
+  add_foreign_key "wide_sync_tasks", "suppliers"
 end

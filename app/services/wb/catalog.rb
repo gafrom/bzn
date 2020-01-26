@@ -4,6 +4,7 @@ module Wb
     include Catalogue::WithLinksScraper
     include Catalogue::WithTrackedProductUpdates
     extend Catalogue::WithSupplierClassMethods
+    extend Catalogue::WithErrorsCaught
 
     LINK_SPL_CHR = ','.freeze
     ID = 'id'.freeze
@@ -47,7 +48,8 @@ module Wb
       'Cache-Control' => 'no-cache'
     }.freeze
     API_V1_URL = ENV['API_V1_URL']
-    OWN_PATH = ENV['KB_OWN_PATH']
+
+    catch_errors_for :sync_latest, :sync_daily, :sync_hourly, :sync_orders_counts
 
     def initialize(*)
       super
@@ -75,28 +77,33 @@ module Wb
       @started_at = Time.zone.now
     end
 
-    def sync(only_new: false)
-      urls = only_new ? latest_products_url : complete_urls_set
-
+    def sync_latest(urls)
       scrape_links urls, to: :nowhere, format: :json do |json|
         products_attrs = {}
 
         add_primary_stuff! to: products_attrs, from: json, override: { category_id: 3 }
         add_coupon_prices_and_feedback_count_to! products_attrs
 
-        save(products_attrs, only_new: only_new) || break
+        save(products_attrs, only_new: true) || break
       end
-
-      hide_unavailable_products unless only_new
-      delete_old_facts unless only_new
-    rescue StandardError => ex
-      @logger.error ex
-    ensure
-      spit_results "sync:#{only_new ? 'latest' : 'all'}"
     end
 
-    def sync_own
-      scrape_links OWN_PATH, to: :nowhere, format: :json do |json|
+    def sync_daily(urls)
+      scrape_links urls, to: :nowhere, format: :json do |json|
+        products_attrs = {}
+
+        add_primary_stuff! to: products_attrs, from: json, override: { category_id: 3 }
+        add_coupon_prices_and_feedback_count_to! products_attrs
+
+        save(products_attrs) || break
+      end
+
+      hide_unavailable_products
+      delete_old_facts
+    end
+
+    def sync_hourly(urls)
+      scrape_links urls, to: :nowhere, format: :json do |json|
         products_attrs = {}
 
         add_primary_stuff! to: products_attrs, from: json
@@ -105,10 +112,6 @@ module Wb
       end
 
       delete_old_hourly_facts
-    rescue StandardError => ex
-      @logger.error ex
-    ensure
-      spit_results 'sync:own'
     end
 
     def sync_orders_counts
@@ -116,18 +119,11 @@ module Wb
         next if @processed.include? product.remote_id
 
         process_single_get_json product.rel_path do |json|
-          # @pool.run { update_sold_counts_from json }
           update_sold_counts_from json
         end
 
         sleep 0.2
       end
-
-      # @pool.await_completion
-    rescue StandardError => ex
-      @logger.error ex
-    ensure
-      spit_results 'sync:orders_counts'
     end
 
     private
@@ -139,15 +135,15 @@ module Wb
         response = @joke_conn.get path
       rescue StandardError => ex
         retry_num ||= 0
-        if retry_num < 6
-          @logger.error "[PROCESS_SINGLE_GET_JSON] Connection failed ☠ . ️"\
+        if retry_num < 10
+          @logger.warn "[PROCESS_SINGLE_GET_JSON] Connection failed ☠ . ️"\
                         "Reconnecting... (retry ##{retry_num += 1})"
-          sleep 1.5**retry_num
+          sleep 1.9**retry_num
           retry
         end
 
         @logger.error "[PROCESS_SINGLE_GET_JSON] Terminating after #{retry_num + 1} attempts."
-        @logger.error ex
+        raise ex
       end
 
       @requests_count += 1
@@ -175,7 +171,7 @@ module Wb
         next log_warning_for remote_id unless product
 
         sold_count = product_attrs[NOMENCL][0][OC].to_i
-        next log_warning_for remote_id, 'No ordersCount' unless sold_count
+        next log_warning_for remote_id, "No #{OC}" unless sold_count
 
         product.assign_attributes sold_count: sold_count
         was_changed = product.changes if product.changed?
@@ -266,7 +262,7 @@ module Wb
       prices_arr = response.dig('data', 'products')
 
       if prices_arr.blank?
-        @logger.info "[ADD_COUPON_PRICES_AND_FEEDBACK_COUNT_TO!] [ERROR] Got empty JSON - No salePrices added. ✅"
+        @logger.warn "[ADD_COUPON_PRICES_AND_FEEDBACK_COUNT_TO!] Got empty JSON - No salePrices added. ✅"
         return
       end
 
@@ -277,7 +273,7 @@ module Wb
         product_attrs[:feedback_count] = attrs[FEEDBACK_COUNT]
       end
     rescue JSON::ParserError => error
-      @logger.info "[ADD_COUPON_PRICES_AND_FEEDBACK_COUNT_TO!] [ERROR] Got wrong JSON (#{error.message}) - No salePrices added. ✅"
+      @logger.error "[ADD_COUPON_PRICES_AND_FEEDBACK_COUNT_TO!] Got wrong JSON (#{error.message}) - No salePrices added. ✅"
       nil
     end
 
@@ -307,15 +303,15 @@ module Wb
         end
       rescue Exception => ex
         retry_num ||= 0
-        if retry_num < 6
-          @logger.error "[FETCH_JSON_FROM_API_V1] Connection failed ☠ . ️"\
+        if retry_num < 10
+          @logger.warn "[FETCH_JSON_FROM_API_V1] Connection failed ☠ . ️"\
                         "Reconnecting... (retry ##{retry_num += 1})"
-          sleep 1.5**retry_num
+          sleep 1.9**retry_num
           retry
         end
 
         @logger.error "[FETCH_JSON_FROM_API_V1] Terminating after #{retry_num + 1} attempts."
-        @logger.error ex
+        raise ex
       end
 
       response.body if response.success?
@@ -327,50 +323,6 @@ module Wb
       log_failure_for url, ex.message
     ensure
       @processed << product.id if product
-    end
-
-    def latest_products_url
-      '/catalog/zhenshchinam/odezhda/platya?pagesize=200&sort=newly'
-    end
-
-    def complete_urls_set
-      %w[
-        /catalog/zhenshchinam/odezhda/platya?price=0;900
-        /catalog/zhenshchinam/odezhda/platya?price=901;1100
-        /catalog/zhenshchinam/odezhda/platya?price=1101;1300
-        /catalog/zhenshchinam/odezhda/platya?price=1301;1400
-        /catalog/zhenshchinam/odezhda/platya?price=1401;1550
-        /catalog/zhenshchinam/odezhda/platya?price=1551;1700
-        /catalog/zhenshchinam/odezhda/platya?price=1701;1850
-        /catalog/zhenshchinam/odezhda/platya?price=1851;2000
-        /catalog/zhenshchinam/odezhda/platya?price=2001;2100
-        /catalog/zhenshchinam/odezhda/platya?price=2101;2200
-        /catalog/zhenshchinam/odezhda/platya?price=2201;2300
-        /catalog/zhenshchinam/odezhda/platya?price=2301;2400
-        /catalog/zhenshchinam/odezhda/platya?price=2401;2500
-        /catalog/zhenshchinam/odezhda/platya?price=2501;2600
-        /catalog/zhenshchinam/odezhda/platya?price=2601;2700
-        /catalog/zhenshchinam/odezhda/platya?price=2701;2800
-        /catalog/zhenshchinam/odezhda/platya?price=2801;2910
-        /catalog/zhenshchinam/odezhda/platya?price=2911;3040
-        /catalog/zhenshchinam/odezhda/platya?price=3041;3150
-        /catalog/zhenshchinam/odezhda/platya?price=3151;3250
-        /catalog/zhenshchinam/odezhda/platya?price=3251;3370
-        /catalog/zhenshchinam/odezhda/platya?price=3371;3520
-        /catalog/zhenshchinam/odezhda/platya?price=3521;3700
-        /catalog/zhenshchinam/odezhda/platya?price=3701;3800
-        /catalog/zhenshchinam/odezhda/platya?price=3801;3900
-        /catalog/zhenshchinam/odezhda/platya?price=3901;4100
-        /catalog/zhenshchinam/odezhda/platya?price=4101;4300
-        /catalog/zhenshchinam/odezhda/platya?price=4301;4600
-        /catalog/zhenshchinam/odezhda/platya?price=4601;5000
-        /catalog/zhenshchinam/odezhda/platya?price=5001;5500
-        /catalog/zhenshchinam/odezhda/platya?price=5501;6000
-        /catalog/zhenshchinam/odezhda/platya?price=6001;7000
-        /catalog/zhenshchinam/odezhda/platya?price=7001;8000
-        /catalog/zhenshchinam/odezhda/platya?price=8001;9000
-        /catalog/zhenshchinam/odezhda/platya?price=9001;98000
-      ].map { |url| url << "#{url.include?('?') ? '&' : '?'}pagesize=200" }
     end
 
     def hide_unavailable_products
@@ -404,7 +356,7 @@ module Wb
     end
 
     def spit_results(tag = nil)
-      message = "[RESULTS @ #{tag}] "\
+      message = "[RESULTS@#{tag}] "\
                 "Total: #{@processed_count}, "\
                 "Created: #{@created_count}, "\
                 "Updated: #{@updated_count}, "\
