@@ -2,26 +2,28 @@
 #
 # Table name: source_links
 #
-#  id                :integer          not null, primary key
-#  wide_sync_task_id :integer
-#  status            :string
-#  url               :string
-#  created_at        :datetime         not null
-#  updated_at        :datetime         not null
+#  id           :integer          not null, primary key
+#  sync_task_id :integer
+#  status       :string
+#  url          :string
+#  created_at   :datetime         not null
+#  updated_at   :datetime         not null
 #
 # Indexes
 #
-#  index_source_links_on_wide_sync_task_id  (wide_sync_task_id)
+#  index_source_links_on_sync_task_id  (sync_task_id)
 #
 # Foreign Keys
 #
-#  fk_rails_...  (wide_sync_task_id => wide_sync_tasks.id)
+#  fk_rails_...  (sync_task_id => sync_tasks.id)
 #
 
 class SourceLink < ApplicationRecord
-  belongs_to :wide_sync_task
+  belongs_to :sync_task, class_name: 'WideSyncTask'.freeze
 
-  after_create :set_initial_status
+  before_create :set_initial_status
+
+  enum status: { unprocessed: 'unprocessed', processed: 'processed' }
 
   private
 

@@ -1,3 +1,5 @@
+require 'sidekiq/web'
+
 Rails.application.routes.draw do
   root 'welcome#home'
 
@@ -5,6 +7,9 @@ Rails.application.routes.draw do
 
   namespace :admin, path: 'fiddle' do
     root 'dashboard#home'
+    authenticate :user do
+      mount Sidekiq::Web => '/jobs'
+    end
 
     resources :products, only: [:index, :show, :edit, :update]
 

@@ -88,14 +88,14 @@ module Wb
       end
     end
 
-    def sync_daily(urls)
-      scrape_links urls, to: :nowhere, format: :json do |json|
+    def sync_daily(urls, callback = nil)
+      scrape_links urls, to: :nowhere, format: :json, after_loop: callback do |json|
         products_attrs = {}
 
         add_primary_stuff! to: products_attrs, from: json, override: { category_id: 3 }
         add_coupon_prices_and_feedback_count_to! products_attrs
 
-        save(products_attrs) || break
+        save products_attrs
       end
 
       hide_unavailable_products

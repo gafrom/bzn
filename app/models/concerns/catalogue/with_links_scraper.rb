@@ -3,27 +3,26 @@ module Catalogue::WithLinksScraper
 
   private
 
-  def scrape_links(rel_urls = nil, to: :disk, format: :html, start_page: 1, paginate: true, &block)
+  def scrape_links(paths = nil, to: :disk, format: :html, start_page: 1, paginate: true,
+                   after_loop: nil, &block)
     if to == :disk
       return unless obsolete?(:links)
       # erase contents now and append later by chunks
       CSV.open path_to_file(:links), 'wb'
     end
 
-    rel_urls = [rel_urls] unless rel_urls.respond_to? :each
+    paths = [paths] unless paths.respond_to? :each
     start_page = paginate ? start_page : false
     @links_count = 0
     @pages_count = 0
 
-    rel_urls.each do |rel_url|
-      abs_url = "#{supplier.host}#{rel_url}"
+    paths.each do |path|
+      abs_url = "#{supplier.host}#{path}"
       @logger.info "Checking out #{abs_url}... " if paginate
       param_prifix = abs_url.include?('?') ? '&' : '?'
 
       if start_page
         start_page.upto PAGE_LIMIT do |num|
-          @requests_count += 1
-
           links = case format
                   when :plain
                     process_single_body "#{abs_url}#{param_prifix}page=#{num}", block
@@ -31,7 +30,7 @@ module Catalogue::WithLinksScraper
                     process_single_html "#{abs_url}#{param_prifix}page=#{num}", block
                   when :json
                     ref_url = num > 1 ? "#{abs_url}#{param_prifix}page=#{num - 1}" : supplier.host
-                    process_single_json "#{rel_url}#{param_prifix}page=#{num}", ref_url, block
+                    process_single_json "#{path}#{param_prifix}page=#{num}", ref_url, block
                   end
 
           @pages_count += 1
@@ -41,12 +40,10 @@ module Catalogue::WithLinksScraper
           @links_count += links.size if links.respond_to? :size
         end
       else
-        @requests_count += 1
-
         links = case format
                 when :plain then process_single_body abs_url, block
-                when :html then process_single_html abs_url, block
-                when :json then process_single_json rel_url, supplier.host, block
+                when :html  then process_single_html abs_url, block
+                when :json  then process_single_json path, supplier.host, block
                 end
 
         @pages_count += 1
@@ -55,6 +52,8 @@ module Catalogue::WithLinksScraper
         send "put_to_#{to}", links
         @links_count += links.size if links.respond_to? :size
       end
+
+      after_loop.call(path) if after_loop
     end
 
     exiting_message = "Finished. Scraped #{@pages_count} #{'page'.pluralize(@pages_count)}"
@@ -76,9 +75,10 @@ module Catalogue::WithLinksScraper
     end
   end
 
-  def process_single_json(rel_url, ref_url, block)
-    @logger.info "Scraping JSON from #{rel_url} ..."
-    response = @general_conn.post rel_url, nil, Referer: ref_url
+  def process_single_json(path, ref_url, block)
+    @logger.info "Scraping JSON from #{path} ..."
+    @requests_count += 1
+    response = @general_conn.post path, nil, Referer: ref_url
 
     if response.success?
       block[JSON.parse(response.body)]
@@ -94,6 +94,7 @@ module Catalogue::WithLinksScraper
 
   def process_single_body(paginated_url, block)
     @logger.info "Scraping body from #{paginated_url} ..."
+    @requests_count += 1
     body = open(paginated_url).read
     block[body]
     true
@@ -121,6 +122,7 @@ module Catalogue::WithLinksScraper
 
   def process_single_html(paginated_url, block)
     @logger.info "Scraping #{paginated_url} ..."
+    @requests_count += 1
     block[Nokogiri::HTML(open(paginated_url).read)]
   rescue OpenURI::HTTPError => error
     response = error.io

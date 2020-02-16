@@ -3,12 +3,10 @@ class WideSyncJob < ApplicationJob
 
   before_perform :set_task
 
-  def perform
+  def perform(*)
     links = @task.source_links.unprocessed.to_a
 
-    @task.supplier.sync_daily(links).each_with_index do |link, i|
-      links[i].processed!
-    end
+    @task.supplier.sync_daily(links.pluck(:url), CountingProc.new { |i| links[i].processed! })
   end
 
   private

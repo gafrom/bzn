@@ -28,9 +28,11 @@ class Supplier < ApplicationRecord
   end
 
   def each_url_for(urls_group_slug)
+    return to_enum(:each_url_for, urls_group_slug) unless block_given?
+
     path = STORAGE_PATH.join "#{slug}_#{urls_group_slug}_urls#{FILE_SUFFIX}"
 
-    File.foreach path, chomp: true
+    File.foreach(path, chomp: true) { |chomped_line| yield chomped_line }
   end
 
   def catalog

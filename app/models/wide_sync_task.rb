@@ -17,7 +17,10 @@
 #
 
 class WideSyncTask < ApplicationRecord
+  self.table_name = :sync_tasks
+
   belongs_to :supplier
+  has_many :source_links, foreign_key: :sync_task_id
 
   def enqueue_job
     WideSyncJob.perform_later(id)

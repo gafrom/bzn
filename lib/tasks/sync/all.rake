@@ -25,15 +25,16 @@ namespace :sync do
   desc "Create sync wide task"
   task wide: :environment do
     supplier = Supplier.from_env
+    sync_task = nil
 
     ActiveRecord::Base.transaction do
-      task = WideSyncTask.create! supplier: supplier
+      sync_task = WideSyncTask.create! supplier: supplier
 
       supplier.each_url_for(:wide_sync) do |url|
-        SourceLink.create! url: url, wide_sync_task: task
+        SourceLink.create! url: url, sync_task: sync_task
       end
     end
 
-    task.enqueue_job
+    sync_task.enqueue_job
   end
 end
