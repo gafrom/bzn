@@ -11,7 +11,7 @@ every '7,37 0-21,23 * * 0-1,3-6' do
 end
 
 every '2 22 * * 0-1,3-6' do
-  rake 'sync:all supplier=wb export:xlsx:wb'
+  rake 'sync:narrow supplier=wb export:xlsx:wb'
 end
 
 every '7,37 0-5 * * 2' do
@@ -21,7 +21,7 @@ every '7,37 0-5 * * 2' do
 end
 
 every :tuesday, at: '06:06' do
-  rake 'sync:all supplier=wb export:xlsx:wb'
+  rake 'sync:narrow supplier=wb export:xlsx:wb'
 end
 
 every :tuesday, at: '08:08' do

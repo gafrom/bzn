@@ -5,8 +5,8 @@ namespace :sync do
     supplier.sync_latest supplier.each_url_for(:latest_sync)
   end
 
-  desc 'Update all products on local machine'
-  task all: :environment do
+  desc 'Update narrow range products on local machine'
+  task narrow: :environment do
     supplier = Supplier.from_env
     supplier.sync_daily supplier.each_url_for(:narrow_sync)
   end
