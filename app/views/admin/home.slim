@@ -1,11 +1,14 @@
 .one
   h1= "Welcome, #{@user.name}"
   p
-    | Total products
+    | Всего товаров (включая недоступные)
     strong=< number_with_delimiter @products_count, delimiter: ' '
   p
-    | Total available products
-    strong=< number_with_delimiter @available_products_count, delimiter: ' '
+    | Товары эксперимента Narrow
+    strong=< number_with_delimiter @narrow_available_count, delimiter: ' '
+  p
+    | Товары эксперимента Wide
+    strong=< number_with_delimiter @wide_available_count, delimiter: ' '
   - if @latest_updated_product
     p
       | Last update
