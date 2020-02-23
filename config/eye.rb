@@ -31,7 +31,7 @@ Eye.application 'bzn' do
     pid_file "tmp/pids/sidekiq.pid"
 
     daemonize true
-    start_command "bundle exec sidekiq -c 1 -q default"
+    start_command "bundle exec sidekiq -c 3 -q default"
 
     stdout "#{ROOT_PATH}/log/sidekiq.stdout.log"
     stderr "#{ROOT_PATH}/log/sidekiq.stderr.log"
