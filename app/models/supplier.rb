@@ -11,7 +11,7 @@
 
 class Supplier < ApplicationRecord
   STORAGE_PATH = Rails.root.join('storage')
-  FILE_SUFFIX  = '.local'.freeze unless Rails.env.production?
+  FILE_SUFFIX  = Rails.env.production? ? '.local'.freeze : ''.freeze
 
   has_many :products
 
