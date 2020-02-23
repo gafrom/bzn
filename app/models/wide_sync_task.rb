@@ -1,6 +1,6 @@
 # == Schema Information
 #
-# Table name: wide_sync_tasks
+# Table name: sync_tasks
 #
 #  id          :integer          not null, primary key
 #  supplier_id :integer
@@ -9,7 +9,7 @@
 #
 # Indexes
 #
-#  index_wide_sync_tasks_on_supplier_id  (supplier_id)
+#  index_sync_tasks_on_supplier_id  (supplier_id)
 #
 # Foreign Keys
 #

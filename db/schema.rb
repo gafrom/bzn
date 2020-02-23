@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20200109190556) do
+ActiveRecord::Schema.define(version: 20200223082717) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -135,6 +135,14 @@ ActiveRecord::Schema.define(version: 20200109190556) do
     t.index ["property_id", "product_id"], name: "index_propertings_on_property_id_and_product_id"
   end
 
+  create_table "pscings", force: :cascade do |t|
+    t.bigint "product_id"
+    t.bigint "supplier_category_id"
+    t.index ["product_id", "supplier_category_id"], name: "index_pscings_on_product_id_and_supplier_category_id", unique: true
+    t.index ["product_id"], name: "index_pscings_on_product_id"
+    t.index ["supplier_category_id"], name: "index_pscings_on_supplier_category_id"
+  end
+
   create_table "source_links", force: :cascade do |t|
     t.bigint "sync_task_id"
     t.string "status"
@@ -142,6 +150,15 @@ ActiveRecord::Schema.define(version: 20200109190556) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["sync_task_id"], name: "index_source_links_on_sync_task_id"
+  end
+
+  create_table "supplier_categories", force: :cascade do |t|
+    t.string "name"
+    t.bigint "supplier_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["name", "supplier_id"], name: "index_supplier_categories_on_name_and_supplier_id"
+    t.index ["supplier_id"], name: "index_supplier_categories_on_supplier_id"
   end
 
   create_table "suppliers", force: :cascade do |t|
@@ -184,6 +201,9 @@ ActiveRecord::Schema.define(version: 20200109190556) do
   add_foreign_key "hourly_facts", "products"
   add_foreign_key "products", "categories"
   add_foreign_key "products", "suppliers"
+  add_foreign_key "pscings", "products"
+  add_foreign_key "pscings", "supplier_categories"
   add_foreign_key "source_links", "sync_tasks"
+  add_foreign_key "supplier_categories", "suppliers"
   add_foreign_key "sync_tasks", "suppliers"
 end

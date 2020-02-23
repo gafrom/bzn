@@ -231,6 +231,7 @@ module Wb
           branding_attributes: branding_attributes,
           url: "/catalog/#{remote_id}/detail.aspx",
           remote_key: remote_id,
+          new_supplier_category: supplier_category_from(from[:path]),
           category_id: category_id,
           is_available: true
         }
@@ -244,6 +245,12 @@ module Wb
 
         product_attrs[:sizes] = attrs[SIZES].map { |size| size[NM] }
       end
+    end
+
+    def supplier_category_from(path)
+      query_string_index = path.index ??
+      path = query_string_index ? path.slice(0, query_string_index) : path
+      SupplierCategory.find_or_create_by name: path, supplier: supplier
     end
 
     def brand_from(title)

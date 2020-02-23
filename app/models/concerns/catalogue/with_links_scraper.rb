@@ -81,7 +81,8 @@ module Catalogue::WithLinksScraper
     response = @general_conn.post path, nil, Referer: ref_url
 
     if response.success?
-      block[JSON.parse(response.body)]
+      json = JSON.parse(response.body).merge!(path: path)
+      block[json]
       true
     else
       @logger.info "Got #{response.status} - treating it as the end of the journey. ✅"

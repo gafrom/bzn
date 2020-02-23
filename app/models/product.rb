@@ -55,6 +55,9 @@ class Product < ApplicationRecord
   has_many :daily_facts
   has_many :hourly_facts
 
+  has_many :pscings, dependent: :destroy
+  has_many :supplier_categories, through: :pscings
+
   has_one :branding, dependent: :destroy
   accepts_nested_attributes_for :branding, update_only: true
   has_one :brand, through: :branding
@@ -75,7 +78,7 @@ class Product < ApplicationRecord
     when :just_supplier then %w[id title supplier]
     when :succinct
       %w[remote_id title supplier category orders_count sizes brand
-        original_price discount_price coupon_price rating color created_at updated_at]
+         original_price discount_price coupon_price rating color created_at updated_at]
     end
   end
 
@@ -121,6 +124,13 @@ class Product < ApplicationRecord
         end
       end
     end
+  end
+
+  def new_supplier_category=(sup_cat)
+    return if !sup_cat || supplier_categories.include?(sup_cat)
+
+    supplier_categories << sup_cat
+    attribute_will_change! :supplier_categories
   end
 
   private
