@@ -28,7 +28,7 @@ every :tuesday, at: '08:08' do
   rake 'sync:orders_counts supplier=wb export:xlsx:wb'
 end
 
-every :sunday, at: '23:43' do
+every :tuesday, at: '23:43' do
   rake 'sync:wide supplier=wb'
 end
 
