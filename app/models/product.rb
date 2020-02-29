@@ -55,6 +55,7 @@ class Product < ApplicationRecord
   has_many :daily_facts
   has_many :hourly_facts
 
+  attribute :supplier_categories # to avoid deprecation warning
   has_many :pscings, dependent: :destroy
   has_many :supplier_categories, through: :pscings
 
@@ -63,7 +64,7 @@ class Product < ApplicationRecord
   has_one :brand, through: :branding
   delegate :brand_id, to: :branding
 
-  belongs_to :category
+  belongs_to :category, optional: true
   belongs_to :supplier
 
   validates :title, presence: true
@@ -110,10 +111,10 @@ class Product < ApplicationRecord
     @rows ||= begin
       case strategy
       when :just_stock    then [[id, MOCK[:title], MOCK[:price], stock]]
-      when :just_id       then [[id, title, category.title]]
+      when :just_id       then [[id, title, category&.title]]
       when :just_supplier then [[id, title, supplier.name]]
       when :succinct
-        [[remote_id, title, supplier.name, category.title, sold_count, sizes.available, brand.title,
+        [[remote_id, title, supplier.name, category&.title, sold_count, sizes.available, brand.title,
           original_price, discount_price, coupon_price, rating, color, created_at, updated_at]]
       when :full
         is_first_row = true
@@ -136,8 +137,7 @@ class Product < ApplicationRecord
   private
 
   def row_for(size, is_first_row)
-    cat_titles = category.upto_root.pluck :title
-    fail IndexError unless cat_titles.count.between? 1, Export::CATEGORIES_DEPTH
+    cat_titles = [supplier_categories.pluck(:name).join(?;)]
     pads_num = Export::CATEGORIES_DEPTH - cat_titles.count
 
     cat_titles + [nil] * pads_num + [

@@ -24,7 +24,7 @@ module Export
       end
     end
 
-    def push_each_to(file, products, strategy = :full)
+    def push_each_to(file, products, strategy)
       products.find_each do |product|
         product.rows(strategy).each { |row| file << row }
         @results.exported += 1

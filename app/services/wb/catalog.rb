@@ -216,9 +216,8 @@ module Wb
                       end
 
         unless category_id
-          @logger.error "[ADD_PRIMARY_STUFF_TO] Cannot infer category "\
-                        "from title: #{title}, remote_id: #{remote_id}"
-          next
+          @logger.warn "[ADD_PRIMARY_STUFF_TO] Cannot infer category "\
+                       "from title: #{title}, remote_id: #{remote_id}"
         end
 
         to[remote_id] ||= {

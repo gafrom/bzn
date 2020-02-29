@@ -5,7 +5,9 @@ module Export
 
   class << self
     def obsolete?(filename)
-      no_file?(filename) || latest_updated_product.updated_at > file_modified_at(filename)
+      no_file?(filename)           \
+        || !latest_updated_product \
+        || latest_updated_product.updated_at > file_modified_at(filename)
     end
 
     def obsolescence_message_for(filename)
