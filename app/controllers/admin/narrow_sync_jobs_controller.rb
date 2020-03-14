@@ -1,15 +1,13 @@
-class Admin::DashboardController < AdminController
+class Admin::NarrowSyncJobsController < AdminController
   TASKS_LIMIT = 15
 
   before_action :set_supplier
 
-  def home
-    @products_count         = Product.where(supplier: @supplier).count
-    @narrow_available_count = narrow_products.count
-    @wide_available_count   = Product.available.where(supplier: @supplier).count
-    @latest_updated_product = Product.where(supplier: @supplier).order(updated_at: :desc).first
+  def index
+    @products_count = narrow_products.count
+    @latest_product = Product.where(supplier: @supplier).order(updated_at: :desc).first
 
-    @tasks = DailyReportTask.all.limit(TASKS_LIMIT).order(id: :desc)
+    @tasks = DailyReportByDayTask.all.limit(TASKS_LIMIT).order(id: :desc)
   end
 
   private

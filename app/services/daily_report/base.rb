@@ -44,4 +44,9 @@ class DailyReport::Base
 
     sum.fdiv(size).to_i if size.positive?
   end
+
+  def category_names(product_id)
+    return unless product_id
+    SupplierCategory.includes(:products).where('products.id': product_id).pluck(:name).join(?;)
+  end
 end

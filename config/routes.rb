@@ -18,5 +18,8 @@ Rails.application.routes.draw do
     resources :report_tasks, only: :create do
       member { get :enqueue }
     end
+
+    get 'wide-syncs', to: 'wide_sync_jobs#index', as: :wide_syncs
+    get 'narrow-syncs', to: 'narrow_sync_jobs#index', as: :narrow_syncs
   end
 end

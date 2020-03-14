@@ -1,32 +1,15 @@
+= link_to 'Назад на Главную', :admin_root
+
+h1 Страница товаров Широкого диапазона
+
 .one
-  h1= "Welcome, #{@user.name}"
-
-  = link_to 'Страница товаров Широкого диапазона', :admin_wide_syncs
-  br
-  = link_to 'Страница товаров Узкого диапазона', :admin_narrow_syncs
-
-  p
-    | Всего товаров (включая недоступные)
-    strong=< number_with_delimiter @products_count, delimiter: ' '
-  p
-    | Товары эксперимента Narrow
-    strong=< number_with_delimiter @narrow_available_count, delimiter: ' '
   p
     | Товары эксперимента Wide
-    strong=< number_with_delimiter @wide_available_count, delimiter: ' '
-  - if @latest_updated_product
+    strong=< number_with_delimiter @products_count, delimiter: ' '
+  - if @latest_product
     p
       | Last update
-      strong=< l @latest_updated_product.updated_at, format: :succinct
-
-  .something
-    = link_to admin_export_catalog_path('succinct.xlsx'), target: :_blank do
-      .link
-        .image 🌭
-        .text
-          .title Download old report
-          .description= file_description('succinct.xlsx')
-
+      strong=< l @latest_product.updated_at, format: :succinct
 
   h2= t '.reports_creating'
 
@@ -36,8 +19,9 @@
       = f.date_field(:start_at, class: 'field')
       | по
       = f.date_field(:end_at, class: 'field')
-      = f.hidden_field(:type, value: 'DailyReportByHourTask')
-      = f.submit t('.create_report_by_hour')
+      = f.hidden_field(:type, value: 'DailyReportWideSyncsTask')
+      = f.submit t('.create_report_wide_syncs')
+
 
   .line
 

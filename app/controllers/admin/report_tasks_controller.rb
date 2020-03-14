@@ -6,9 +6,10 @@ class Admin::ReportTasksController < AdminController
 
     if @task.save
       human_dates = [@task.start_at, @task.end_at].map { |date| I18n.l(date) }
-      redirect_to admin_root_path, notice: "Началось создание отчёта с #{human_dates.join(' по ')}"
+      redirect_back fallback_location: admin_root_path,
+                    notice: "Началось создание отчёта с #{human_dates.join(' по ')}"
     else
-      redirect_to admin_root_path, alert: 'Ошибка при создании задачи'
+      redirect_back fallback_location: admin_root_path, alert: 'Ошибка при создании задачи'
     end
   end
 
