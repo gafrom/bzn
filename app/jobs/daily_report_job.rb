@@ -1,5 +1,5 @@
 class DailyReportJob < ApplicationJob
-  queue_as :default
+  queue_as :reports
 
   def perform(report_task_id)
     task = DailyReportTask.find_by id: report_task_id

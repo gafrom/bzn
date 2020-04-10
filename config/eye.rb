@@ -31,19 +31,43 @@ Eye.application 'bzn' do
     pid_file "tmp/pids/sidekiq.pid"
 
     daemonize true
-    start_command "bundle exec sidekiq -c 3 -q default"
+    start_command "bundle exec sidekiq -c 1 -q default"
 
-    stdout "#{ROOT_PATH}/log/sidekiq.stdout.log"
-    stderr "#{ROOT_PATH}/log/sidekiq.stderr.log"
+    stdall "#{ROOT_PATH}/log/sidekiq.log"
 
     start_grace 30.seconds
     stop_grace 10.seconds
     restart_grace 45.seconds
 
     monitor_children do
-      stop_command 'kill {PID}'
+      stop_command "kill -QUIT {PID}"
+      check :memory, every: 30, below: 250.megabytes, times: 3
     end
 
     stop_signals [:USR1, 5.seconds, :TERM]
+
+    check :memory, every: 30, below: 310.megabytes, times: 3
+  end
+
+  process :sidekiq_reports do
+    pid_file "tmp/pids/sidekiq_reports.pid"
+
+    daemonize true
+    start_command "bundle exec sidekiq -c 1 -q reports"
+
+    stdall "#{ROOT_PATH}/log/sidekiq.log"
+
+    start_grace 30.seconds
+    stop_grace 10.seconds
+    restart_grace 45.seconds
+
+    monitor_children do
+      stop_command "kill -QUIT {PID}"
+      check :memory, every: 30, below: 250.megabytes, times: 3
+    end
+
+    stop_signals [:USR1, 5.seconds, :TERM]
+
+    check :memory, every: 30, below: 310.megabytes, times: 3
   end
 end
