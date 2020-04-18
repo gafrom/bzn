@@ -36,17 +36,10 @@ Eye.application 'bzn' do
     stdall "#{ROOT_PATH}/log/sidekiq.log"
 
     start_grace 30.seconds
-    stop_grace 10.seconds
-    restart_grace 45.seconds
+    restart_grace 50.seconds
+    stop_signals [:TSTP, 5.seconds, :TERM, 12.seconds]
 
-    monitor_children do
-      stop_command "kill -QUIT {PID}"
-      check :memory, every: 30, below: 250.megabytes, times: 3
-    end
-
-    stop_signals [:USR1, 5.seconds, :TERM]
-
-    check :memory, every: 30, below: 310.megabytes, times: 3
+    check :memory, every: 30, below: 150.megabytes, times: 3
   end
 
   process :sidekiq_reports do
@@ -58,16 +51,9 @@ Eye.application 'bzn' do
     stdall "#{ROOT_PATH}/log/sidekiq.log"
 
     start_grace 30.seconds
-    stop_grace 10.seconds
     restart_grace 45.seconds
+    stop_signals [:TSTP, 5.seconds, :TERM, 12.seconds]
 
-    monitor_children do
-      stop_command "kill -QUIT {PID}"
-      check :memory, every: 30, below: 250.megabytes, times: 3
-    end
-
-    stop_signals [:USR1, 5.seconds, :TERM]
-
-    check :memory, every: 30, below: 310.megabytes, times: 3
+    check :memory, every: 30, below: 300.megabytes, times: 3
   end
 end
