@@ -17,8 +17,7 @@
 #  fk_rails_...  (supplier_id => suppliers.id)
 #
 
-class WideSyncTask < SyncTask
-  def enqueue_job
-    WideSyncJob.perform_later(self)
-  end
+class SyncTask < ApplicationRecord
+  belongs_to :supplier
+  has_many :source_links
 end

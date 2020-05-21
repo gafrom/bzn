@@ -1,3 +1,7 @@
+# Load env vars before everything else
+require 'dotenv'
+Dotenv.load('.env.local')
+
 # Load DSL and set up stages
 require "capistrano/setup"
 

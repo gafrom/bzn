@@ -19,7 +19,7 @@
 #
 
 class SourceLink < ApplicationRecord
-  belongs_to :sync_task, class_name: 'WideSyncTask'.freeze
+  belongs_to :sync_task
 
   before_create :set_initial_status
 

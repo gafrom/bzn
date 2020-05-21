@@ -19,7 +19,15 @@ namespace :sync do
 
   desc "Update all products' orders counts on local machine"
   task orders_counts: :environment do
-    Supplier.from_env.sync_orders_counts
+    supplier = Supplier.from_env
+    products = Product
+      .joins('INNER JOIN daily_facts ON products.id = daily_facts.product_id')
+      .where('products.supplier_id = ? '\
+             'AND daily_facts.created_at >= ? '\
+             'AND daily_facts.is_available = ?', supplier.id, 1.week.ago.to_date, true)
+      .distinct
+
+    supplier.sync_orders_counts(products)
   end
 
   desc "Create sync wide task"
@@ -31,6 +39,22 @@ namespace :sync do
       sync_task = WideSyncTask.create! supplier: supplier
 
       supplier.each_url_for(:wide_sync) do |url|
+        SourceLink.create! url: url, sync_task: sync_task
+      end
+    end
+
+    sync_task.enqueue_job
+  end
+
+  desc "Create and enqueue entire sync task"
+  task entire: :environment do
+    supplier = Supplier.from_env
+    sync_task = nil
+
+    ActiveRecord::Base.transaction do
+      sync_task = EntireSyncTask.create! supplier: supplier
+
+      supplier.each_url_for(:entire_sync) do |url|
         SourceLink.create! url: url, sync_task: sync_task
       end
     end

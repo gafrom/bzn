@@ -17,8 +17,8 @@
 #  fk_rails_...  (supplier_id => suppliers.id)
 #
 
-class WideSyncTask < SyncTask
+class EntireSyncTask < SyncTask
   def enqueue_job
-    WideSyncJob.perform_later(self)
+    EntireSyncJob.perform_later(self)
   end
 end

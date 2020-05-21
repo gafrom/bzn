@@ -12,6 +12,6 @@ class WideSyncJob < ApplicationJob
   private
 
   def set_task
-    @task = WideSyncTask.find(arguments.first)
+    @task = arguments.first
   end
 end

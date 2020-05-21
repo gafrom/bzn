@@ -9,6 +9,8 @@ class Catalog
   NUM_THREADS = 16
   LOG_FILE = Rails.root.join 'log', 'parsing.log'
 
+  attr_reader :logger
+
   def initialize(supplier_host = nil)
     @supplier_host  = supplier_host
 

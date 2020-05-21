@@ -49,7 +49,7 @@ module Wb
     }.freeze
     API_V1_URL = ENV['API_V1_URL']
 
-    catch_errors_for :sync_latest, :sync_daily, :sync_hourly, :sync_orders_counts
+    catch_errors_for :sync_once, :sync_latest, :sync_daily, :sync_hourly, :sync_orders_counts
 
     def initialize(*)
       super
@@ -68,6 +68,7 @@ module Wb
         conn.adapter :net_http
       end
 
+      @spit_results_was_invoked = false
       @processed_count = 0
       @requests_count = 0
       @created_daily_facts_count = 0
@@ -85,6 +86,17 @@ module Wb
         add_coupon_prices_and_feedback_count_to! products_attrs
 
         save(products_attrs, only_new: true) || break
+      end
+    end
+
+    def sync_once(urls, callback = nil)
+      scrape_links urls, to: :nowhere, format: :json, after_loop: callback do |json|
+        products_attrs = {}
+
+        add_primary_stuff! to: products_attrs, from: json
+        add_coupon_prices_and_feedback_count_to! products_attrs
+
+        save products_attrs
       end
     end
 
@@ -114,8 +126,8 @@ module Wb
       delete_old_hourly_facts
     end
 
-    def sync_orders_counts
-      recent_products.find_each do |product|
+    def sync_orders_counts(products)
+      products.find_each do |product|
         next if @processed.include? product.remote_id
 
         process_single_get_json product.rel_path do |json|
@@ -185,14 +197,6 @@ module Wb
       end
     end
 
-    def recent_products
-      Product.joins('INNER JOIN daily_facts ON products.id = daily_facts.product_id')
-             .where('products.supplier_id = ? '\
-                    'AND daily_facts.created_at >= ? '\
-                    'AND daily_facts.is_available = ?', supplier.id, 1.week.ago.to_date, true)
-             .distinct
-    end
-
     def add_primary_stuff!(to:, from:, override: nil)
       from['products'].each do |attrs|
         remote_id = attrs[COD1S].to_i
@@ -209,16 +213,6 @@ module Wb
         end
 
         branding_attributes = { brand_id: brand_from(brand_title).id }
-        category_id = if override&.key?(:category_id)
-                        override[:category_id]
-                      else
-                        Categorizer.safe_id_from_title(title)
-                      end
-
-        unless category_id
-          @logger.warn "[ADD_PRIMARY_STUFF_TO] Cannot infer category "\
-                       "from title: #{title}, remote_id: #{remote_id}"
-        end
 
         to[remote_id] ||= {
           title: title,
@@ -361,7 +355,9 @@ module Wb
       @failures_count += 1
     end
 
-    def spit_results(tag = nil)
+    def spit_results(tag = nil, only_once: false)
+      return if only_once && @spit_results_was_invoked
+
       message = "[RESULTS@#{tag}] "\
                 "Total: #{@processed_count}, "\
                 "Created: #{@created_count}, "\
@@ -373,6 +369,8 @@ module Wb
                 "Requests: #{@requests_count}, "\
                 "Failures: #{@failures_count}"
       @logger.info message
+
+      @spit_results_was_invoked = true
     end
   end
 end

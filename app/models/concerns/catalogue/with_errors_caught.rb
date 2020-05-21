@@ -12,10 +12,11 @@ module Catalogue
           define_method(method_name) do |*args|
             begin
               super *args
+              spit_results method_name, only_once: true
             rescue StandardError => ex
               @logger.error ex
-            ensure
               spit_results method_name
+              raise ex
             end
           end
         end
