@@ -225,7 +225,6 @@ module Wb
           url: "/catalog/#{remote_id}/detail.aspx",
           remote_key: remote_id,
           new_supplier_category: supplier_category_from(from[:path]),
-          category_id: category_id,
           is_available: true
         }
       end
