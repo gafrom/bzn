@@ -37,7 +37,7 @@ Eye.application 'bzn' do
     stop_signals [:TSTP, 5.seconds, :TERM, 12.seconds]
 
     check :cpu, every: 20.seconds, below: 95, times: 9
-    check :memory, every: 1.minute, below: 150.megabytes, times: 3
+    check :memory, every: 1.minute, below: 300.megabytes, times: 3
   end
 
   process :sidekiq_reports do
