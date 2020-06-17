@@ -32,6 +32,7 @@ class DailyReportTask < ApplicationRecord
   private
 
   def set_filename
+    return if filename
     self.filename = "#{dashed_class_name}--#{start_at}-#{end_at}--#{SecureRandom.hex(3)}.xlsx"
   end
 
