@@ -14,6 +14,7 @@ class Supplier < ApplicationRecord
   FILE_SUFFIX  = Rails.env.production? ? ''.freeze : '.local'.freeze
 
   has_many :products
+  has_many :categories, class_name: :SupplierCategory
 
   validates :name, :host, presence: true, uniqueness: true
 
@@ -42,5 +43,27 @@ class Supplier < ApplicationRecord
 
   def self.from_env
     find_by! name: ENV[name.downcase].to_s.camelcase
+  end
+
+  def categories_mapping
+    @categories_mapping ||= begin
+      path = STORAGE_PATH.join "#{slug}_entire_sync_urls_mapping#{FILE_SUFFIX}"
+
+      temp = {}
+      File.foreach(path, chomp: true) do |line|
+        cat, text_with_others = line.split(' => ')
+        temp[text_with_others] = cat.split(?,)
+      end
+
+      hsh = {}
+      categories.each do |supcat|
+        _, cat = temp.find { |text, _| text.include?(supcat.name) }
+        raise "Cannot find SupplierCategory: #{supcat.name}" unless cat
+
+        hsh[supcat] = cat
+      end
+
+      hsh
+    end
   end
 end

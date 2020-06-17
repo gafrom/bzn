@@ -19,7 +19,7 @@
 #
 
 class SupplierCategory < ApplicationRecord
-  has_many :pscings
+  has_many :pscings, dependent: :destroy
   has_many :products, through: :pscings
 
   belongs_to :supplier

@@ -41,7 +41,7 @@
 #
 
 class Product < ApplicationRecord
-  PROXY_HOST = 'http://151.248.118.98'.freeze
+  PROXY_HOST = "http://#{ENV['BZN_HOST_PROD']}".freeze
   MOCK = { title: 'title', price: 100 }
 
   after_create :set_slug

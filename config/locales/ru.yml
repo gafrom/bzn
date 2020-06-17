@@ -15,6 +15,7 @@ ru:
       succinct: "%d %B, %A, %H:%M %Z"
       xlsx: "%d %B %H-%M %Z"
       date: "%Y-%m-%d"
+      file: "%Y-%m-%d--%H-%M-%S"
 
   admin:
     home:
