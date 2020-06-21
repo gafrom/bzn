@@ -53,6 +53,6 @@ class DailyReportTask < ApplicationRecord
   end
 
   def enqueue_job
-    DailyReportJob.perform_later(id)
+    DailyReportJob.perform_later(self)
   end
 end
