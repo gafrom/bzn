@@ -20,10 +20,10 @@ class DailyReport::ByWeek < DailyReport::Base
   def store
     Xlsxtream::Workbook.open @filename do |xlsx|
       xlsx.write_worksheet I18n.l(Time.now, format: :xlsx) do |sheet|
-        sheet << top_headers
+        headers.each { |header| sheet << header }
 
         product_id = nil
-        row = headers
+        row = column_names
         prices = []
 
         batches_of_facts_ids do |ids|
@@ -33,7 +33,7 @@ class DailyReport::ByWeek < DailyReport::Base
                 row[LOFFSET + @num_weeks] = average_price(prices)
                 row[LOFFSET + @num_weeks + ROFFSET + 2] = category_names(product_id)
               end
-              sheet << row
+              sheet << row if row[LOFFSET...(LOFFSET + @num_weeks)].compact.any?
               row = [fact[BRAND_TITLE], fact[REMOTE_ID]]
 
               product_id = fact[PRODUCT_ID]
@@ -56,7 +56,7 @@ class DailyReport::ByWeek < DailyReport::Base
     end
   end
 
-  def headers
+  def column_names
     result = [
       'brand',            # LOFFSET - 2
       'remote_id'         # LOFFSET - 1
@@ -74,10 +74,12 @@ class DailyReport::ByWeek < DailyReport::Base
     ]
   end
 
-  def top_headers
+  def headers
     [
-      "Weekly report for the period: #{I18n.l(@start_at, format: :xlsx)} - "\
-      "#{I18n.l(@end_at, format: :xlsx)}. Creation time: #{I18n.l(Time.now, format: :xlsx)}"
+      ["Weekly report for the period: #{I18n.l(@start_at, format: :xlsx)} - "\
+      "#{I18n.l(@end_at, format: :xlsx)}."],
+      ["Total weeks: #{@num_weeks}."],
+      ["Creation time: #{I18n.l(Time.now, format: :xlsx)}"]
     ]
   end
 
