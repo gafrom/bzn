@@ -144,6 +144,10 @@ input[type=submit] {
   .link {
     list-style: none;
 
+    border: solid 1px yellowgreen;
+    margin: 10px;
+    padding: 10px;
+
     .image {
       display: inline-block;
       font-size: 35px;

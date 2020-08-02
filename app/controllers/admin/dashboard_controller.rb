@@ -5,8 +5,6 @@ class Admin::DashboardController < AdminController
 
   def home
     @products_count         = Product.where(supplier: @supplier).count
-    @narrow_available_count = narrow_products.count
-    @wide_available_count   = Product.available.where(supplier: @supplier).count
     @latest_updated_product = Product.where(supplier: @supplier).order(updated_at: :desc).first
 
     @tasks = DailyReportTask.all.limit(TASKS_LIMIT).order(id: :desc)
@@ -14,16 +12,16 @@ class Admin::DashboardController < AdminController
 
   private
 
-  def narrow_products
-    narrow_sync_name = @supplier.each_url_for(:narrow_sync).to_a.first.split(??).first
-    join_str = 'JOIN pscings ON pscings.product_id = products.id '\
-               'JOIN supplier_categories ON supplier_categories.id = pscings.supplier_category_id'
+  # def narrow_products
+  #   narrow_sync_name = @supplier.each_url_for(:narrow_sync).to_a.first.split(??).first
+  #   join_str = 'JOIN pscings ON pscings.product_id = products.id '\
+  #              'JOIN supplier_categories ON supplier_categories.id = pscings.supplier_category_id'
 
-    Product.available.where(supplier: @supplier).joins(join_str)
-           .where("supplier_categories.name = '#{narrow_sync_name}'")
-  end
+  #   Product.available.where(supplier: @supplier).joins(join_str)
+  #          .where("supplier_categories.name = '#{narrow_sync_name}'")
+  # end
 
   def set_supplier
-    @supplier = Supplier.find(12)
+    @supplier = Supplier.main
   end
 end

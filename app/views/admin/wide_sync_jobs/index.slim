@@ -1,6 +1,6 @@
 = link_to 'Назад на Главную', :admin_root
 
-h1 Страница товаров Широкого диапазона
+h1 Страница товаров Женская
 
 .one
   p
@@ -30,15 +30,19 @@ h1 Страница товаров Широкого диапазона
   ul.something
     - @tasks.each do |task|
       li.link
-        .image 🍹
+        - if task.status == 'completed'
+          .image 🍹
+        - else
+          .status(class=task.status)= t "daily_report_task.statuses.#{task.status}"
+          - if task.status == 'dequeued'
+            .status.enqueue= link_to '🔃', enqueue_admin_report_task_path(task)
         .text
           .title
             - title = t("task_title.#{task.type}") + ": #{task.start_at} - #{task.end_at}"
             - if task.status == 'completed'
-              = link_to title, admin_export_catalog_path(task.filename), target: :_blank
+              - task.filenames.each do |filename|
+                - basename = File.basename(filename)
+                = link_to basename, admin_export_catalog_path(basename), target: :_blank
+                .description= file_description(basename)
             - else
-              = title
-          .status(class=task.status)= t "daily_report_task.statuses.#{task.status}"
-          - if task.status == 'dequeued'
-            .status.enqueue= link_to '🔃', enqueue_admin_report_task_path(task)
-          .description= file_description(task.filepath)
+              = title          

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20200520181014) do
+ActiveRecord::Schema.define(version: 20200802130727) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -80,6 +80,8 @@ ActiveRecord::Schema.define(version: 20200520181014) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "type"
+    t.integer "supplier_id"
+    t.index ["supplier_id"], name: "index_daily_report_tasks_on_supplier_id"
   end
 
   create_table "hourly_facts", force: :cascade do |t|

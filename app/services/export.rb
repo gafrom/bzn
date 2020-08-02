@@ -21,7 +21,7 @@ module Export
     end
 
     def path_to_file(filename)
-      PATH_TO_FILE.join filename
+      Dir[PATH_TO_FILE.join('**', filename)].first
     end
 
     def no_file?(filename)

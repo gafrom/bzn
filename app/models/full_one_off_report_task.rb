@@ -11,15 +11,15 @@
 #  created_at  :datetime         not null
 #  updated_at  :datetime         not null
 #  type        :string
+#  supplier_id :integer
+#
+# Indexes
+#
+#  index_daily_report_tasks_on_supplier_id  (supplier_id)
 #
 
 class FullOneOffReportTask < DailyReportTask
   before_validation :mock_required_fields
-
-  def supplier
-    # hack to use filename as supplier_id
-    @supplier ||= Supplier.find filename.to_i
-  end
 
   private
 

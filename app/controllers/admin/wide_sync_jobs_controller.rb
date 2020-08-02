@@ -13,6 +13,6 @@ class Admin::WideSyncJobsController < AdminController
   private
 
   def set_supplier
-    @supplier = Supplier.find(12)
+    @supplier = Supplier.main
   end
 end

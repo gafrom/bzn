@@ -34,47 +34,50 @@
 
 class DailyFact < ApplicationRecord
   STATEMENT = <<~SQL.freeze
-    SELECT f.product_id,
-           f.remote_id,
-           f.coupon_price,
-           f.sold_count,
-           f.created_at,
-           array_length(f.sizes, 1) as sizes_count,
-           b.title as brand_title
-    FROM daily_facts f
-    INNER JOIN unnest('{%{ids}}'::int[]) WITH ORDINALITY t(id, ord) USING (id)
-    LEFT JOIN brands b ON f.brand_id = b.id
+    SELECT df.product_id,
+           df.remote_id,
+           df.coupon_price,
+           df.sold_count,
+           df.created_at,
+           array_length(df.sizes, 1) as sizes_count,
+           b.title as brand_title,
+           string_agg(sc.name, ',') as subcategories
+    FROM daily_facts df
+    JOIN brands b               ON df.brand_id = b.id
+    JOIN pscings psc            ON df.product_id = psc.product_id
+    JOIN supplier_categories sc ON psc.supplier_category_id = sc.id
+    JOIN unnest('{%{ids}}'::int[]) WITH ORDINALITY t(fact_id, ord) ON df.id = t.fact_id
+    GROUP BY 1, 2, 3, 4, 5, 6, 7, t.ord
     ORDER BY t.ord
   SQL
 
-  WEEKLY_WIDE_COUNT = <<~SQL.freeze
-    SELECT count(*)
+  IDS_FOR_WEEKLY_WIDE_REPORT = <<~SQL.freeze
+    SELECT res_facts.df_id
     FROM (
-      SELECT DISTINCT ON (f.product_id, extract(week from f.created_at)) f.created_at
-      FROM daily_facts f
-      WHERE f.created_at BETWEEN '%{start_at}' AND '%{end_at}'
-    ) weekly_wide_ids
-  SQL
-
-  WEEKLY_WIDE_IDS = <<~SQL.freeze
-    SELECT resulting_facts.id
-    FROM (
-      SELECT DISTINCT ON (f.product_id, extract(week from f.created_at)) f.created_at, f.id
-      FROM daily_facts f
-      WHERE f.created_at BETWEEN '%{start_at}' AND '%{end_at}'
-      ORDER BY f.product_id, extract(week from f.created_at), f.created_at
+      SELECT DISTINCT ON (df.product_id, extract(week from df.created_at))
+        df.product_id as product_id,
+        extract(week from df.created_at) as week_num,
+        df.id as df_id
+      FROM daily_facts df
+      JOIN pscings psc            ON df.product_id = psc.product_id
+      JOIN supplier_categories sc ON psc.supplier_category_id = sc.id
+      WHERE df.created_at BETWEEN '%{start_at}' AND '%{end_at}'
+        AND sc.name IN (%{sc_names})
+      ORDER BY df.product_id, extract(week from df.created_at), df.created_at
       LIMIT %{limit}
       OFFSET %{offset}
-    ) resulting_facts
+    ) res_facts
+    ORDER BY res_facts.product_id, res_facts.week_num
   SQL
 
   IDS_FOR_ONE_OFF_REPORT = <<~SQL.freeze
     SELECT ids.fact_id
     FROM (
       SELECT
-        DISTINCT ON (df.product_id) df.product_id,
-        df.id as fact_id,
-        sc.name as sc_name
+        DISTINCT ON (df.product_id)
+          df.product_id,
+          df.id as fact_id,
+          sc.name as sc_name
       FROM daily_facts df
       JOIN pscings psc ON psc.product_id = df.product_id
       JOIN supplier_categories sc ON sc.id = psc.supplier_category_id
@@ -120,16 +123,6 @@ class DailyFact < ApplicationRecord
     connection.execute(STATEMENT % { ids: ids.join(',') })
   end
 
-  def self.pluck_ids_for_weekly_wide_report(limit:, offset:, start_at:, end_at:)
-    query = WEEKLY_WIDE_IDS % { limit: limit, offset: offset, start_at: start_at, end_at: end_at }
-    connection.exec_query(query).rows.map(&:first)
-  end
-
-  def self.count_ids_for_weekly_wide_report(start_at:, end_at:)
-    query = WEEKLY_WIDE_COUNT % { start_at: start_at, end_at: end_at }
-    connection.exec_query(query).rows.first.first
-  end
-
   def self.ids_for_one_off_report(names:, limit:, offset:)
     names = names.map { |text| "'#{text}'" }.join(?,)
     query = IDS_FOR_ONE_OFF_REPORT % { names: names, limit: limit, offset: offset }
@@ -138,5 +131,18 @@ class DailyFact < ApplicationRecord
 
   def self.pluck_fields_for_one_off_report(ids)
     connection.execute(FIELDS_FOR_ONE_OFF_REPORT % { ids: ids.join(?,) })
+  end
+
+  def self.ids_for_weekly_wide_report(limit:, offset:, start_at:, end_at:, categories:)
+    sc_names = categories.map { |text| "'#{text}'" }.join(?,)
+    query = IDS_FOR_WEEKLY_WIDE_REPORT % {
+      limit: limit,
+      offset: offset,
+      sc_names: sc_names,
+      start_at: start_at,
+      end_at: end_at
+    }
+
+    connection.exec_query(query).rows.map(&:first)
   end
 end

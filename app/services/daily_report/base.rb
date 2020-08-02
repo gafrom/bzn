@@ -1,9 +1,12 @@
 class DailyReport::Base
+  include WithSpawnXlsx
+
   BATCH_SIZE = 250000 # it will keep memory consumption within 200Mb
 
   attr_reader :start_at, :end_at, :num_days, :filename, :facts
 
   def initialize(task)
+    @task = task
     @start_at = task.start_at.to_date
     @end_at   = task.end_at.to_date
     @num_days = (@end_at - @start_at + 1).to_i

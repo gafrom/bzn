@@ -2,7 +2,7 @@ class Admin::ReportTasksController < AdminController
   before_action :set_task, only: :enqueue
 
   def create
-    @task = DailyReportTask.new task_params
+    @task = DailyReportTask.new task_params.merge(supplier: Supplier.main)
 
     if @task.save
       human_dates = [@task.start_at, @task.end_at].map { |date| I18n.l(date) }

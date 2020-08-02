@@ -15,6 +15,7 @@ class Supplier < ApplicationRecord
 
   has_many :products
   has_many :categories, class_name: :SupplierCategory
+  has_many :daily_report_tasks
 
   validates :name, :host, presence: true, uniqueness: true
 
@@ -43,6 +44,21 @@ class Supplier < ApplicationRecord
 
   def self.from_env
     find_by! name: ENV[name.downcase].to_s.camelcase
+  end
+
+  def self.main
+    find(ENV['MAIN_SUPPLIER_ID'])
+  end
+
+  def wide_categories_by_groups
+    path = STORAGE_PATH.join "#{slug}_wide_sync_urls_by_groups#{FILE_SUFFIX}"
+
+    File.foreach(path, chomp: true).to_a.reduce({}) do |hsh, line|
+      cat_name, *cats = line.split(?,)
+      hsh[cat_name] = cats
+
+      hsh
+    end
   end
 
   def categories_mapping

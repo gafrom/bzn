@@ -11,11 +11,18 @@
 #  created_at  :datetime         not null
 #  updated_at  :datetime         not null
 #  type        :string
+#  supplier_id :integer
+#
+# Indexes
+#
+#  index_daily_report_tasks_on_supplier_id  (supplier_id)
 #
 
 class DailyReportTask < ApplicationRecord
   KEEP = 15 # tasks at most
-  DIR = Rails.root.join 'storage', 'export'
+  STORAGE_DIR = Rails.root.join 'storage', 'export'
+
+  belongs_to :supplier
 
   validates :start_at, :end_at, presence: true
 
@@ -26,7 +33,15 @@ class DailyReportTask < ApplicationRecord
 
   def filepath
     return unless filename
-    DIR.join filename
+    STORAGE_DIR.join filename
+  end
+
+  def filename_base
+    @filename_base ||= File.basename(filename).split(?.).first
+  end
+
+  def filenames
+    Dir["#{STORAGE_DIR.join('**', filename_base)}*"]
   end
 
   private

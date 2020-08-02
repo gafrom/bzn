@@ -22,6 +22,6 @@ class Admin::NarrowSyncJobsController < AdminController
   end
 
   def set_supplier
-    @supplier = Supplier.find(12)
+    @supplier = Supplier.main
   end
 end
