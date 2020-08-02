@@ -78,8 +78,8 @@ module DailyReport
 
     def headers
       [
-        ["Weekly report for the period: #{I18n.l(@start_at, format: :xlsx)} - "\
-        "#{I18n.l(@end_at, format: :xlsx)}."],
+        ["Weekly report for the period: #{I18n.l(@start_at.beginning_of_week, format: :xlsx)} - "\
+        "#{I18n.l(@end_at.end_of_week, format: :xlsx)}."],
         ["Total weeks: #{@num_weeks}."],
         ["Creation time: #{I18n.l(Time.now, format: :xlsx)}"]
       ]
@@ -96,8 +96,8 @@ module DailyReport
         DailyFact.ids_for_weekly_wide_report(
           limit: BATCH_SIZE,
           offset: n * BATCH_SIZE,
-          start_at: @start_at.beginning_of_day,
-          end_at: @end_at.end_of_day,
+          start_at: @start_at.beginning_of_week,
+          end_at: @end_at.end_of_week,
           categories: categories
         ).instance_eval { |ids| ids if ids.any? }
       end
