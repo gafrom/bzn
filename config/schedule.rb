@@ -1,6 +1,6 @@
 # server time, currently set to UTC
 
-set roles: [:bzn]
+set :roles, [:bzn]
 
 every '26 * * * *' do
   rake 'sync:own supplier=wb'
