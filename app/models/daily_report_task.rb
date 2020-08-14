@@ -44,6 +44,10 @@ class DailyReportTask < ApplicationRecord
     Dir["#{STORAGE_DIR.join('**', filename_base)}*"]
   end
 
+  def completed?
+    status == 'completed'
+  end
+
   private
 
   def set_filename
