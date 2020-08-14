@@ -1,7 +1,6 @@
 module DailyReport
   class ByWeek < DailyReport::Base
     LOFFSET = 2 # number of columns to the left of columns with dates
-    ROFFSET = 1 # number of columns between columns with dates and columns with sold_count
 
     PRODUCT_ID   = 'product_id'.freeze
     REMOTE_ID    = 'remote_id'.freeze
@@ -26,6 +25,7 @@ module DailyReport
           headers.each { |header| sheet << header }
 
           product_id = nil
+          last_fact = nil
           row = column_names
           prices = []
 
@@ -33,8 +33,8 @@ module DailyReport
             DailyFact.pluck_fields_for_report(ids).each do |fact|
               if product_id != fact[PRODUCT_ID]
                 if product_id
-                  row[LOFFSET + @num_weeks] = average_price(prices)
-                  row[LOFFSET + @num_weeks + ROFFSET + 2] = fact[SUBCATEGORIES]
+                  row[LOFFSET + @num_weeks * 2] = average_price(prices)
+                  row[LOFFSET + @num_weeks * 2 + 1] = fact[SUBCATEGORIES]
                 end
                 sheet << row if row[LOFFSET...(LOFFSET + @num_weeks)].compact.any?
                 row = [fact[BRAND_TITLE], fact[REMOTE_ID]]
@@ -44,16 +44,18 @@ module DailyReport
 
               i = @week_indexing[fact[CREATED_AT].to_date.cweek]
               row[LOFFSET + i] = fact[SIZES_COUNT]
-
-              row[LOFFSET + @num_weeks + ROFFSET + 0] = fact[SOLD_COUNT] if i == 0
-              row[LOFFSET + @num_weeks + ROFFSET + 1] = fact[SOLD_COUNT] if i == @num_weeks - 1
+              row[LOFFSET + @num_weeks + i] = fact[SOLD_COUNT]
 
               prices[i] = fact[COUPON_PRICE]
+              last_fact = fact
             end
           end
 
-          row[LOFFSET + @num_weeks] = average_price(prices)
-          sheet << row
+          if last_fact
+            row[LOFFSET + @num_weeks * 2] = average_price(prices)
+            row[LOFFSET + @num_weeks * 2 + 1] = last_fact[SUBCATEGORIES]
+            sheet << row
+          end
         end
       end
     end
@@ -64,15 +66,19 @@ module DailyReport
         'remote_id'         # LOFFSET - 1
       ]
 
+      # columns for size lengths
       @num_weeks.times do |n|
-        result << "Week #{@start_at.cweek + n}"
+        result << "Week #{@start_at.cweek + n} - sizes"
+      end
+
+      # columns for order counts
+      @num_weeks.times do |n|
+        result << "Week #{@start_at.cweek + n} - orders"
       end
 
       result += [
-        'avg coupon_price', # LOFFSET + @num_weeks
-        'orders OB',        # LOFFSET + @num_weeks + ROFFSET
-        'orders CB',        # LOFFSET + @num_weeks + ROFFSET + 1
-        'categories'        # LOFFSET + @num_weeks + ROFFSET + 2
+        'avg coupon_price', # LOFFSET + @num_weeks * 2
+        'categories'        # LOFFSET + @num_weeks * 2 + 1
       ]
     end
 
@@ -81,7 +87,11 @@ module DailyReport
         ["Weekly report for the period: #{I18n.l(@start_at.beginning_of_week, format: :xlsx)} - "\
         "#{I18n.l(@end_at.end_of_week, format: :xlsx)}."],
         ["Total weeks: #{@num_weeks}."],
-        ["Creation time: #{I18n.l(Time.now, format: :xlsx)}"]
+        ["Creation time: #{I18n.l(Time.now, format: :xlsx)}"],
+        [],
+        [nil] * LOFFSET + ['Columns for size lengths'] +
+                          [nil] * (@num_weeks - 1) +
+                          ['Columns for order counts']
       ]
     end
 
