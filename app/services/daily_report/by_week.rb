@@ -36,9 +36,11 @@ module DailyReport
                   row[LOFFSET + @num_weeks * 2] = average_price(prices)
                   row[LOFFSET + @num_weeks * 2 + 1] = fact[SUBCATEGORIES]
                 end
+
                 sheet << row if row[LOFFSET...(LOFFSET + @num_weeks)].compact.any?
                 row = [fact[BRAND_TITLE], fact[REMOTE_ID]]
 
+                prices.clear
                 product_id = fact[PRODUCT_ID]
               end
 
