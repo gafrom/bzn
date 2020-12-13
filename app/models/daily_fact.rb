@@ -70,6 +70,24 @@ class DailyFact < ApplicationRecord
     ORDER BY res_facts.product_id, res_facts.week_num
   SQL
 
+  IDS_FOR_WEEKLY_WIDE_REPORT_V2 = <<~SQL.freeze
+    SELECT res_facts.df_id
+    FROM (
+      SELECT
+        df.product_id as product_id,
+        df.id as df_id
+      FROM daily_facts df
+      JOIN pscings psc            ON df.product_id = psc.product_id
+      JOIN supplier_categories sc ON psc.supplier_category_id = sc.id
+      WHERE df.created_at BETWEEN '%{start_at}' AND '%{end_at}'
+        AND sc.name IN (%{sc_names})
+      ORDER BY df.product_id, df.created_at
+      LIMIT %{limit}
+      OFFSET %{offset}
+    ) res_facts
+    ORDER BY res_facts.product_id
+  SQL
+
   IDS_FOR_ONE_OFF_REPORT = <<~SQL.freeze
     SELECT ids.fact_id
     FROM (
@@ -136,6 +154,19 @@ class DailyFact < ApplicationRecord
   def self.ids_for_weekly_wide_report(limit:, offset:, start_at:, end_at:, categories:)
     sc_names = categories.map { |text| "'#{text}'" }.join(?,)
     query = IDS_FOR_WEEKLY_WIDE_REPORT % {
+      limit: limit,
+      offset: offset,
+      sc_names: sc_names,
+      start_at: start_at,
+      end_at: end_at
+    }
+
+    connection.exec_query(query).rows.map(&:first)
+  end
+
+  def self.ids_for_weekly_wide_report_v2(limit:, offset:, start_at:, end_at:, categories:)
+    sc_names = categories.map { |text| "'#{text}'" }.join(?,)
+    query = IDS_FOR_WEEKLY_WIDE_REPORT_V2 % {
       limit: limit,
       offset: offset,
       sc_names: sc_names,

@@ -22,6 +22,15 @@ h1 Страница товаров Женская
       = f.hidden_field(:type, value: 'DailyReportWideSyncsTask')
       = f.submit t('.create_report_wide_syncs')
 
+  = form_for :daily_report_task, url: { action: :create, controller: :report_tasks }, class: 'daily-report-form' do |f|
+    .something
+      | С
+      = f.date_field(:start_at, class: 'field')
+      | по
+      = f.date_field(:end_at, class: 'field')
+      = f.hidden_field(:type, value: 'DailyReportWideSyncsTaskV2')
+      = f.submit t('.create_report_wide_syncs_v2')
+
 
   .line
 

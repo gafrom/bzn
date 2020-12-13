@@ -26,6 +26,7 @@ ru:
     wide_sync_jobs:
       index:
         create_report_wide_syncs: Создать понедельный отчёт Широкого диапазона товаров
+        create_report_wide_syncs_v2: Создать понедельный отчёт Широкого диапазона товаров V2
 
     narrow_sync_jobs:
       index:
@@ -35,6 +36,7 @@ ru:
     DailyReportByHourTask: Почасовой отчёт по Вашему бренду
     DailyReportByDayTask: Подневный отчёт узкого диапазона
     DailyReportWideSyncsTask: Понедельный отчёт широкого диапазона
+    DailyReportWideSyncsTaskV2: Понедельный отчёт широкого диапазона V2
 
   daily_report_task:
     statuses:

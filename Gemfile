@@ -27,7 +27,7 @@ gem 'simple_form'
 
 gem 'translit'
 gem 'faraday'
-gem 'xlsxtream'
+gem 'xlsxtream', git: 'https://github.com/gafrom/xlsxtream.git', branch: 'feature/custom-cell-format'
 gem 'rails-i18n', '~> 5.1'
 gem 'numo-narray'
 
