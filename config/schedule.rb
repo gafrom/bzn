@@ -12,19 +12,11 @@ every '7,37 * * * *' do
   rake 'sync:latest supplier=wb export:xlsx:wb'
 end
 
-every '2 22 * * 0-1,3-6' do
-  rake 'sync:narrow supplier=wb export:xlsx:wb'
-end
-
-every :tuesday, at: '06:06' do
-  rake 'sync:narrow supplier=wb export:xlsx:wb'
-end
-
 every :tuesday, at: '08:08' do
   rake 'sync:orders_counts supplier=wb export:xlsx:wb'
 end
 
-every :saturday, at: '23:43' do
+every :day, at: '23:43' do
   rake 'sync:wide supplier=wb'
 end
 
