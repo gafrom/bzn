@@ -7,7 +7,7 @@ end
 
 gem 'pg'
 gem 'annotate'
-gem 'puma', '~> 3.7'
+gem 'puma', '~> 3.12'
 gem 'eye', require: false, group: :production
 gem 'dotenv-rails', require: 'dotenv/rails-now'
 gem 'rails', '~> 5.1.4'
