@@ -19,6 +19,7 @@ module Wb
     BRAND = 'brand'.freeze
     MARK = 'mark'.freeze
     COLOR = 'color'.freeze
+    COLORS = 'colors'.freeze
     PRICE = 'price'.freeze
     NOMENCL = 'nomenclatures'.freeze
     OC = 'ordersCount'.freeze
@@ -48,8 +49,10 @@ module Wb
       'Cache-Control' => 'no-cache'
     }.freeze
     API_V1_URL = ENV['API_V1_URL']
+    BATCH_SIZE = 200
 
-    catch_errors_for :sync_once, :sync_latest, :sync_daily, :sync_hourly, :sync_orders_counts
+    catch_errors_for :sync_once, :sync_latest, :sync_daily, :sync_hourly, :sync_orders_counts,
+                     :sync_products
 
     def initialize(*)
       super
@@ -76,13 +79,15 @@ module Wb
       @created_hourly_facts_count = 0
       @deleted_hourly_facts_count = 0
       @started_at = Time.zone.now
+
+      @brands_cache = {}
     end
 
     def sync_latest(urls)
       scrape_links urls, to: :nowhere, format: :json do |json|
         products_attrs = {}
 
-        add_primary_stuff! to: products_attrs, from: json, override: { category_id: 3 }
+        add_primary_stuff! to: products_attrs, from: json
         add_coupon_prices_and_feedback_count_to! products_attrs
 
         save(products_attrs, only_new: true) || break
@@ -110,7 +115,22 @@ module Wb
         save products_attrs
       end
 
-      hide_unavailable_products
+      # hide_unavailable_products
+      delete_old_facts
+    end
+
+    def sync_products(products)
+      products.in_batches(of: BATCH_SIZE) do |few_products|
+        products_attrs = batch_fetch_from_api_v1(few_products.pluck(:remote_id))
+        products_with_attrs =
+          few_products.each_with_object({}) do |product, o|
+            next unless products_attrs.key?(product.remote_id)
+            o[product] = products_attrs.delete(product.remote_id)
+          end
+
+        save products_with_attrs
+      end
+
       delete_old_facts
     end
 
@@ -246,12 +266,14 @@ module Wb
     end
 
     def brand_from(title)
-      brand = Brand.find_or_initialize_by title: title
-      if brand.new_record?
-        @logger.info "[ADD_PRIMARY_STUFF_TO:BRAND_FROM] Create brand '#{title}'"
+      @brands_cache[title] ||= begin
+        brand = Brand.find_or_initialize_by title: title
+        if brand.new_record?
+          @logger.info "[ADD_PRIMARY_STUFF_TO:BRAND_FROM] Create brand '#{title}'"
+        end
+        brand.save
+        brand
       end
-      brand.save
-      brand
     end
 
     def add_coupon_prices_and_feedback_count_to!(products_attrs)
@@ -276,9 +298,63 @@ module Wb
       nil
     end
 
+    def batch_fetch_from_api_v1(product_remote_ids)
+      response_json = fetch_json_from_api_v1("nm=#{product_remote_ids.join(?;)}")
+
+      response = JSON.parse response_json
+      raw_products = response.dig('data', 'products')
+
+      if raw_products.blank?
+        @logger.warn "[BATCH_FETCH_FROM_API_V1] Got empty JSON."
+        return
+      end
+
+      products_attrs = {}
+
+      raw_products.each do |attrs|
+        remote_id = attrs[ID].to_i
+        brand_title = attrs[BRAND]
+        sizes = attrs[SIZES]
+
+        missing = case
+                  when remote_id == 0 then 'remote_id'
+                  when brand_title.nil? || brand_title.empty? then 'brand'
+                  end
+
+        if missing
+          @logger.error "[BATCH_FETCH_FROM_API_V1] No #{missing} is provided - skipping"
+          next
+        end
+
+        products_attrs[remote_id] = {
+          title: attrs[NAME],
+          remote_id: remote_id,
+          sizes: sizes.map { |size| size[NAME] },
+          original_price: attrs[PRICE],
+          rating: attrs[RATING],
+          color: attrs[COLORS].first&.[](NAME),
+          branding_attributes: { brand_id: brand_from(brand_title).id },
+          url: "/catalog/#{remote_id}/detail.aspx",
+          remote_key: remote_id,
+          is_available: !(sizes.nil? || sizes.empty?),
+          coupon_price: attrs[COUPON_PRICE],
+          feedback_count: attrs[FEEDBACK_COUNT]
+        }
+      end
+
+      products_attrs
+    rescue JSON::ParserError => error
+      @logger.error "[BATCH_FETCH_FROM_API_V1] Got wrong JSON (#{error.message})."
+      nil
+    end
+
     def save(products_attrs, opts = {})
-      all_were_new = products_attrs.each do |remote_id, attrs|
-        product = Product.find_or_initialize_by remote_id: remote_id, supplier: supplier
+      all_were_new = products_attrs.each do |remote_id_or_product, attrs|
+        product = case remote_id_or_product
+                  when Product then remote_id_or_product
+                  else Product.find_or_initialize_by remote_id: remote_id_or_product,
+                                                     supplier: supplier
+                  end
         break false if opts[:only_new] && product.persisted?
 
         update_product attrs, product
