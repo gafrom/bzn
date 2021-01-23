@@ -41,6 +41,16 @@ namespace :sync do
       supplier.each_url_for(:wide_sync) do |url|
         SourceLink.create! url: url, sync_task: sync_task
       end
+
+      initial_count = 0
+      Product.all.in_batches(of: 100000) do |batch|
+        pairs = batch.pluck(:id).map { |id| "(#{id},#{sync_task.id})" }.join(?,)
+        Psting.connection.execute(
+          "INSERT INTO pstings (product_id, sync_task_id) VALUES #{pairs};")
+        initial_count += batch.size
+      end
+
+      sync_task.update initial_count: initial_count
     end
 
     sync_task.enqueue_job

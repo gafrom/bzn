@@ -2,11 +2,12 @@
 #
 # Table name: sync_tasks
 #
-#  id          :integer          not null, primary key
-#  supplier_id :integer
-#  created_at  :datetime         not null
-#  updated_at  :datetime         not null
-#  type        :string
+#  id            :integer          not null, primary key
+#  supplier_id   :integer
+#  created_at    :datetime         not null
+#  updated_at    :datetime         not null
+#  type          :string
+#  initial_count :integer
 #
 # Indexes
 #

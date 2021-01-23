@@ -105,21 +105,24 @@ module Wb
       end
     end
 
-    def sync_daily(urls, callback = nil)
-      scrape_links urls, to: :nowhere, format: :json, after_loop: callback do |json|
+    def sync_daily(urls, after_url_done_callback: nil, after_request_processed_callback: nil)
+      scrape_links urls, to: :nowhere, format: :json, after_pagination_end: after_url_done_callback do |json|
         products_attrs = {}
 
         add_primary_stuff! to: products_attrs, from: json, override: { category_id: 3 }
         add_coupon_prices_and_feedback_count_to! products_attrs
 
         save products_attrs
+
+        products_processed = Product.where(remote_id: products_attrs.keys, supplier: supplier)
+        after_request_processed_callback.call(products_processed) if after_request_processed_callback
       end
 
       # hide_unavailable_products
       delete_old_facts
     end
 
-    def sync_products(products)
+    def sync_products(products, after_batch_callback: nil)
       products.in_batches(of: BATCH_SIZE) do |few_products|
         products_attrs = batch_fetch_from_api_v1(few_products.pluck(:remote_id))
         products_with_attrs =
@@ -129,6 +132,7 @@ module Wb
           end
 
         save products_with_attrs
+        after_batch_callback.call(products_with_attrs.keys) if after_batch_callback
       end
 
       delete_old_facts

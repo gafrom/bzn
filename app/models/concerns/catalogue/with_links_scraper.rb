@@ -4,7 +4,7 @@ module Catalogue::WithLinksScraper
   private
 
   def scrape_links(paths = nil, to: :disk, format: :html, start_page: 1, paginate: true,
-                   after_loop: nil, &block)
+                   after_pagination_end: nil, &block)
     if to == :disk
       return unless obsolete?(:links)
       # erase contents now and append later by chunks
@@ -53,7 +53,7 @@ module Catalogue::WithLinksScraper
         @links_count += links.size if links.respond_to? :size
       end
 
-      after_loop.call(path) if after_loop
+      after_pagination_end.call if after_pagination_end
     end
 
     exiting_message = "Finished. Scraped #{@pages_count} #{'page'.pluralize(@pages_count)}"

@@ -2,11 +2,12 @@
 #
 # Table name: sync_tasks
 #
-#  id          :integer          not null, primary key
-#  supplier_id :integer
-#  created_at  :datetime         not null
-#  updated_at  :datetime         not null
-#  type        :string
+#  id            :integer          not null, primary key
+#  supplier_id   :integer
+#  created_at    :datetime         not null
+#  updated_at    :datetime         not null
+#  type          :string
+#  initial_count :integer
 #
 # Indexes
 #
@@ -20,4 +21,6 @@
 class SyncTask < ApplicationRecord
   belongs_to :supplier
   has_many :source_links
+  has_many :pstings
+  has_many :products, through: :pstings
 end
