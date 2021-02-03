@@ -9,9 +9,10 @@ module DailyReport
     def initialize(task)
       @task = task
 
-      @start_at, @end_at = @end_at, @start_at if @end_at < @start_at
       @start_at = task.start_at.to_date
       @end_at   = task.end_at.to_date
+      @start_at, @end_at = @end_at, @start_at if @end_at < @start_at
+
       @num_days = (@end_at - @start_at + 1).to_i
 
       @date_indexing = @num_days.times.reduce({}) { |hsh, n| hsh[@start_at + n.days] = n; hsh }
