@@ -14,7 +14,7 @@ module DailyReport
     def initialize(task)
       super
 
-      @num_weeks = ((ee.beginning_of_week.to_date - ss.beginning_of_week.to_date)/7 + 1).to_i
+      @num_weeks = ((@end_at.beginning_of_week.to_date - @start_at.beginning_of_week.to_date)/7 + 1).to_i
       @week_indexing = @num_weeks.times.reduce({}) { |hsh, n| hsh[@start_at.cweek + n] = n; hsh }
 
       @filename_base = @task.filename_base
