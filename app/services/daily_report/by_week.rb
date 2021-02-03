@@ -13,7 +13,8 @@ module DailyReport
 
     def initialize(task)
       super
-      @num_weeks = (@end_at.cweek - @start_at.cweek + 1).to_i
+
+      @num_weeks = ((ee.beginning_of_week.to_date - ss.beginning_of_week.to_date)/7 + 1).to_i
       @week_indexing = @num_weeks.times.reduce({}) { |hsh, n| hsh[@start_at.cweek + n] = n; hsh }
 
       @filename_base = @task.filename_base
@@ -70,12 +71,12 @@ module DailyReport
 
       # columns for size lengths
       @num_weeks.times do |n|
-        result << "Week #{@start_at.cweek + n} - sizes"
+        result << "Week #{(@start_at + (n * 7).days).cweek} - sizes"
       end
 
       # columns for order counts
       @num_weeks.times do |n|
-        result << "Week #{@start_at.cweek + n} - orders"
+        result << "Week #{(@start_at + (n * 7).days).cweek} - orders"
       end
 
       result += [
