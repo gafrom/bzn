@@ -45,7 +45,7 @@ module DailyReport
                 product_id = fact[PRODUCT_ID]
               end
 
-              i = week_index_from(fact)
+              i = week_index_from(fact[CREATED_AT].to_date)
               row[LOFFSET + i] = fact[SIZES_COUNT]
               row[LOFFSET + @num_weeks + i] = fact[SOLD_COUNT]
 
@@ -128,8 +128,8 @@ module DailyReport
       xlsx_storage_dir.join "#{@filename_base}_#{cat}.xlsx"
     end
 
-    def week_index_from(fact)
-      ((fact[CREATED_AT].beginning_of_week.to_date - @days_offset) / 7).to_i
+    def week_index_from(fact_date)
+      ((fact_date.beginning_of_week.to_date - @days_offset) / 7).to_i
     end
   end
 end
