@@ -38,8 +38,8 @@ module DailyReport
                 product_id = fact[PRODUCT_ID]
               end
 
+              i = week_index_from(fact)
               fact_date = fact[CREATED_AT].to_date.freeze
-              i = @week_indexing[fact_date.cweek]
 
               sizes[i][fact_date] = fact[SIZES_COUNT]
               solds[i][fact_date] = fact[SOLD_COUNT]

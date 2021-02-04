@@ -14,8 +14,8 @@ module DailyReport
     def initialize(task)
       super
 
-      @num_weeks = ((@end_at.beginning_of_week.to_date - @start_at.beginning_of_week.to_date)/7 + 1).to_i
-      @week_indexing = @num_weeks.times.reduce({}) { |hsh, n| hsh[@start_at.cweek + n] = n; hsh }
+      @days_offset = @start_at.beginning_of_week.to_date.freeze
+      @num_weeks = ((@end_at.beginning_of_week.to_date - @days_offset)/7 + 1).to_i
 
       @filename_base = @task.filename_base
     end
@@ -45,7 +45,7 @@ module DailyReport
                 product_id = fact[PRODUCT_ID]
               end
 
-              i = @week_indexing[fact[CREATED_AT].to_date.cweek]
+              i = week_index_from(fact)
               row[LOFFSET + i] = fact[SIZES_COUNT]
               row[LOFFSET + @num_weeks + i] = fact[SOLD_COUNT]
 
@@ -126,6 +126,10 @@ module DailyReport
                 .join(?_)
 
       xlsx_storage_dir.join "#{@filename_base}_#{cat}.xlsx"
+    end
+
+    def week_index_from(fact)
+      ((fact[CREATED_AT].beginning_of_week.to_date - @days_offset) / 7).to_i
     end
   end
 end
