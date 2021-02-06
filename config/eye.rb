@@ -54,19 +54,4 @@ Eye.application 'bzn' do
     check :cpu, every: 20.seconds, below: 95, times: 9
     check :memory, every: 1.minute, below: 300.megabytes, times: 3
   end
-
-  process :sidekiq_reports_2 do
-    daemonize true
-    pid_file "tmp/pids/sidekiq_reports_2.pid"
-    stdall "#{ROOT_PATH}/log/sidekiq.log"
-
-    start_command "bundle exec sidekiq -c 1 -q reports"
-
-    start_grace 30.seconds
-    restart_grace 45.seconds
-    stop_signals [:TSTP, 5.seconds, :TERM, 12.seconds]
-
-    check :cpu, every: 20.seconds, below: 95, times: 9
-    check :memory, every: 1.minute, below: 300.megabytes, times: 3
-  end
 end
