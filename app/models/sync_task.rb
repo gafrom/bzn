@@ -33,7 +33,14 @@ class SyncTask < ApplicationRecord
   end
 
   def bulk_add_products(primary_keys)
-    Psting.bulk_insert(primary_keys.map { |pid| "(#{pid},#{id})" }.join(?,))
+    existing = Psting
+      .where(sync_task_id: id, product_remote_id: primary_keys)
+      .pluck(:product_remote_id)
+
+    to_be_added = primary_keys - existing
+    return unless to_be_added.any?
+
+    Psting.bulk_insert(to_be_added.map { |pid| "(#{pid},#{id})" }.join(?,))
   end
 end
 

@@ -122,11 +122,11 @@ module Wb
       delete_old_facts
     end
 
-    def fetch_product_remote_ids(urls, after_url_done_callback: nil)
-      scrape_links urls, to: :nowhere,
+    def fetch_product_remote_ids(urls, after_url_done_callback: nil, &block)
+      scrape_links(urls, to: :nowhere,
                          format: :json,
-                         after_pagination_end: after_url_done_callback  do |json|
-        yield extract_remote_ids(json)
+                         after_pagination_end: after_url_done_callback) do |json|
+        block.call(extract_remote_ids(json))
       end
     end
 

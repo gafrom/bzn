@@ -9,9 +9,9 @@ module Catalogue
 
       wrapping_module.class_eval do
         method_names.each do |method_name|
-          define_method(method_name) do |*args|
+          define_method(method_name) do |*args, &b|
             begin
-              super *args
+              super *args, &b
               spit_results method_name, only_once: true
             rescue StandardError => ex
               @logger.error ex
