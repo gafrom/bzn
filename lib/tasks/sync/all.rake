@@ -35,6 +35,10 @@ namespace :sync do
     supplier = Supplier.from_env
     sync_task = nil
 
+    return if WideSyncTask.where(
+      created_at: Date.today.beginning_of_day..Date.today.end_of_day,
+      supplier: supplier).any?
+
     ActiveRecord::Base.transaction do
       sync_task = WideSyncTask.create! supplier: supplier
 
@@ -44,9 +48,7 @@ namespace :sync do
 
       initial_count = 0
       Product.all.in_batches(of: 100000) do |batch|
-        pairs = batch.pluck(:id).map { |id| "(#{id},#{sync_task.id})" }.join(?,)
-        Psting.connection.execute(
-          "INSERT INTO pstings (product_id, sync_task_id) VALUES #{pairs};")
+        sync_task.bulk_add_products batch.pluck(:remote_id)
         initial_count += batch.size
       end
 
