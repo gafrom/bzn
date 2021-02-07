@@ -55,6 +55,10 @@ class Product < ApplicationRecord
   has_many :daily_facts
   has_many :hourly_facts
 
+  has_many :pstings, dependent: :destroy,
+    foreign_key: :product_remote_id, primary_key: :remote_id
+  has_many :sync_tasks, through: :pstings
+
   attribute :supplier_categories # to avoid deprecation warning
   has_many :pscings, dependent: :destroy
   has_many :supplier_categories, through: :pscings

@@ -6,15 +6,16 @@ class WideSyncJob < ApplicationJob
   def perform(*)
     links = @task.source_links.unprocessed.to_a
 
-    # crawl what's out there
-    @task.supplier.sync_daily(
+    # check what's out there
+    @task.supplier.fetch_product_remote_ids(
       links.pluck(:url),
-      after_url_done_callback: CountingProc.new { |i| links[i].processed! },
-      after_request_processed_callback: checking_off
-    )
+      after_url_done_callback: CountingProc.new { |i| links[i].processed! }
+    ) do |remote_ids|
+      @task.bulk_add_products remote_ids
+    end
 
-    # update what's hidden
-    @task.supplier.sync_products(@task.products, after_batch_callback: checking_off)
+    # update what's assigned
+    @task.supplier.sync_products(@task.products.unprocessed, after_batch_callback: checking_off)
   end
 
   private
@@ -25,7 +26,7 @@ class WideSyncJob < ApplicationJob
 
   def checking_off
     lambda do |products|
-      Psting.where(product_id: products, sync_task_id: @task.id).delete_all
+      @task.pstings.where(product: products).update_all is_processed: true
     end
   end
 end

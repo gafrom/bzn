@@ -22,5 +22,18 @@ class SyncTask < ApplicationRecord
   belongs_to :supplier
   has_many :source_links
   has_many :pstings
-  has_many :products, through: :pstings
+  has_many :products, through: :pstings, primary_key: :remote_id do
+    def processed
+      where(pstings: { is_processed: true })
+    end
+
+    def unprocessed
+      where(pstings: { is_processed: false })
+    end
+  end
+
+  def bulk_add_products(primary_keys)
+    Psting.bulk_insert(primary_keys.map { |pid| "(#{pid},#{id})" }.join(?,))
+  end
 end
+

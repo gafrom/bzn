@@ -52,7 +52,7 @@ module Wb
     BATCH_SIZE = 200
 
     catch_errors_for :sync_once, :sync_latest, :sync_daily, :sync_hourly, :sync_orders_counts,
-                     :sync_products
+                     :sync_products, :fetch_product_remote_ids
 
     def initialize(*)
       super
@@ -120,6 +120,14 @@ module Wb
 
       # hide_unavailable_products
       delete_old_facts
+    end
+
+    def fetch_product_remote_ids(urls, after_url_done_callback: nil)
+      scrape_links urls, to: :nowhere,
+                         format: :json,
+                         after_pagination_end: after_url_done_callback  do |json|
+        yield extract_remote_ids(json)
+      end
     end
 
     def sync_products(products, after_batch_callback: nil)
@@ -219,6 +227,10 @@ module Wb
         next increment_updated product, was_changed if was_changed
         skip product, touch: false
       end
+    end
+
+    def extract_remote_ids(from)
+      from['products'].map { |attrs| attrs[COD1S].to_i }
     end
 
     def add_primary_stuff!(to:, from:, override: nil)

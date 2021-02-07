@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20210123173506) do
+ActiveRecord::Schema.define(version: 20210207141721) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -146,10 +146,13 @@ ActiveRecord::Schema.define(version: 20210123173506) do
   end
 
   create_table "pstings", force: :cascade do |t|
-    t.bigint "product_id"
-    t.bigint "sync_task_id"
-    t.index ["product_id", "sync_task_id"], name: "index_pstings_on_product_id_and_sync_task_id", unique: true
-    t.index ["product_id"], name: "index_pstings_on_product_id"
+    t.integer "product_remote_id", null: false
+    t.integer "sync_task_id", null: false
+    t.boolean "is_processed", default: false
+    t.index ["product_remote_id", "sync_task_id", "is_processed"], name: "full_index"
+    t.index ["product_remote_id", "sync_task_id"], name: "index_pstings_on_product_remote_id_and_sync_task_id", unique: true
+    t.index ["product_remote_id"], name: "index_pstings_on_product_remote_id"
+    t.index ["sync_task_id", "is_processed"], name: "index_on_task_id_and_is_processed"
     t.index ["sync_task_id"], name: "index_pstings_on_sync_task_id"
   end
 
@@ -215,8 +218,6 @@ ActiveRecord::Schema.define(version: 20210123173506) do
   add_foreign_key "products", "suppliers"
   add_foreign_key "pscings", "products"
   add_foreign_key "pscings", "supplier_categories"
-  add_foreign_key "pstings", "products"
-  add_foreign_key "pstings", "sync_tasks"
   add_foreign_key "source_links", "sync_tasks"
   add_foreign_key "supplier_categories", "suppliers"
   add_foreign_key "sync_tasks", "suppliers"

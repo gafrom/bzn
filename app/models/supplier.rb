@@ -20,7 +20,7 @@ class Supplier < ApplicationRecord
   validates :name, :host, presence: true, uniqueness: true
 
   delegate :logger, :sync_once, :sync_latest, :sync_daily, :sync_hourly,
-           :sync_orders_counts, :sync_products, to: :catalog
+           :sync_orders_counts, :sync_products, :fetch_product_remote_ids, to: :catalog
 
   def domain
     name.constantize

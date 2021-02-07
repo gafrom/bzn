@@ -1,10 +1,10 @@
 class CreateJoinTableBetweenProductsAndSyncTasks < ActiveRecord::Migration[5.1]
   def change
     create_table :pstings do |t|
-      t.belongs_to :product, foreign_key: true
-      t.belongs_to :sync_task, foreign_key: true
+      t.integer :product_remote_id, null: false, index: true
+      t.integer :sync_task_id, null: false, index: true
 
-      t.index [:product_id, :sync_task_id], unique: true
+      t.index [:product_remote_id, :sync_task_id], unique: true
     end
   end
 end
