@@ -21,10 +21,13 @@ ru:
     home:
       reports: Список отчётов
       reports_creating: Создание отчётов
+      tasks_stats: Статистика работ
       create_report: Создать отчёт
       create_report_by_hour: Создать почасовой отчёт по Вашему бренду
     wide_sync_jobs:
       index:
+        reports_creating: Создание отчётов
+        tasks_stats: Статистика работ
         create_report_wide_syncs: Создать понедельный отчёт Широкого диапазона товаров
         create_report_wide_syncs_v2: Создать понедельный отчёт Широкого диапазона товаров V2
 

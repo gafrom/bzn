@@ -20,6 +20,9 @@ class Psting < ApplicationRecord
   belongs_to :product, foreign_key: :product_remote_id, primary_key: :remote_id
   belongs_to :sync_task
 
+  scope :processed, -> { where is_processed: true }
+  scope :unprocessed, -> { where is_processed: false }
+
   def self.bulk_insert(values)
     connection.execute("INSERT INTO pstings (product_remote_id, sync_task_id) VALUES #{values};")
   end

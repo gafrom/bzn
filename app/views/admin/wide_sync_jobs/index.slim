@@ -4,12 +4,30 @@ h1 Страница товаров Женская
 
 .one
   p
-    | Товары эксперимента Wide
+    | Всего товаров
     strong=< number_with_delimiter @products_count, delimiter: ' '
   - if @latest_product
     p
       | Last update
       strong=< l @latest_product.updated_at, format: :succinct
+
+  h2= t '.tasks_stats'
+
+  table
+    tr
+      th style="text-align: left;" Sync task
+      th style="text-align: left;" colspan="3" Source links
+      th style="text-align: left;" colspan="3" Products
+
+    - @sync_tasks.each do |task|
+      tr
+        td style="padding-right: 35px;"= "#{task.id} (#{l task.created_at, format: :short})"
+        td= task.source_links.unprocessed.count
+        td= task.source_links.processed.count
+        td style="padding-right: 35px;"= task.source_links.count
+        td= task.pstings.unprocessed.count
+        td= task.pstings.processed.count
+        td= task.pstings.count
 
   h2= t '.reports_creating'
 
