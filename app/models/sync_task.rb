@@ -33,7 +33,7 @@ class SyncTask < ApplicationRecord
   end
 
   def bulk_add_products(primary_keys)
-    primary_keys.reject! { |pk| pk == nil || pk.empty? }
+    primary_keys.compact!
 
     existing = Psting
       .where(sync_task_id: id, product_remote_id: primary_keys)
