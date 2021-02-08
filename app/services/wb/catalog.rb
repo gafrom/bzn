@@ -320,12 +320,12 @@ module Wb
       response = JSON.parse response_json
       raw_products = response.dig('data', 'products')
 
-      if raw_products.blank?
-        @logger.warn "[BATCH_FETCH_FROM_API_V1] Got empty JSON."
-        return
-      end
-
       products_attrs = {}
+
+      if raw_products.blank?
+        @logger.warn "[BATCH_FETCH_FROM_API_V1] Got empty JSON for ids #{product_remote_ids}"
+        return products_attrs
+      end
 
       raw_products.each do |attrs|
         remote_id = attrs[ID].to_i
