@@ -4,7 +4,7 @@ class Admin::WideSyncJobsController < AdminController
   before_action :set_supplier
 
   def index
-    @latest_product  = Product.where(supplier: @supplier).order(updated_at: :desc).first
+    @latest_product  = Product.where(supplier: @supplier).order(created_at: :desc).first
     # rough approximation of total count
     @products_count = @latest_product.id
 

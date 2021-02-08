@@ -4,7 +4,7 @@ class Admin::DashboardController < AdminController
   before_action :set_supplier
 
   def home
-    @latest_updated_product = Product.where(supplier: @supplier).order(updated_at: :desc).first
+    @latest_updated_product = Product.where(supplier: @supplier).order(created_at: :desc).first
     # cheating with total count to speed up performance
     @products_count = @latest_updated_product.id
 
