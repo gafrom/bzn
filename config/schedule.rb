@@ -9,7 +9,9 @@ end
 every '7,37 * * * *' do
   # trick to set other env variables:
   # rake 'export:xlsx:wb', environment: 'production RAILS_LOG_LEVEL=1'
-  rake 'sync:latest supplier=wb export:xlsx:wb'
+  # temporarily do not do the exporting
+  rake 'sync:latest supplier=wb'
+  # rake 'sync:latest supplier=wb export:xlsx:wb'
 end
 
 every :tuesday, at: '08:08' do
