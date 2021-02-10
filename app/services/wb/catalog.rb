@@ -130,17 +130,12 @@ module Wb
       end
     end
 
-    def sync_products(products, after_batch_callback: nil)
-      products.in_batches(of: BATCH_SIZE) do |few_products|
-        products_attrs = batch_fetch_from_api_v1(few_products.pluck(:remote_id))
-        products_with_attrs =
-          few_products.each_with_object({}) do |product, o|
-            next unless products_attrs.key?(product.remote_id)
-            o[product] = products_attrs.delete(product.remote_id)
-          end
+    def sync_products(remote_ids, after_batch_callback: nil)
+      remote_ids.each_slice(BATCH_SIZE) do |few_remote_ids|
+        products_attrs = batch_fetch_from_api_v1(few_remote_ids)
 
-        save products_with_attrs
-        after_batch_callback.call(products_with_attrs.keys) if after_batch_callback
+        save products_attrs
+        after_batch_callback.call(products_attrs.keys) if after_batch_callback
       end
 
       delete_old_facts

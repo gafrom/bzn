@@ -1,4 +1,6 @@
 class WideSyncJob < ApplicationJob
+  BATCH_SIZE = 10_000
+
   queue_as :default
 
   before_perform :set_task
@@ -15,7 +17,12 @@ class WideSyncJob < ApplicationJob
     end
 
     # update what's assigned
-    @task.supplier.sync_products(@task.products.unprocessed, after_batch_callback: checking_off)
+    @task.pstings.unprocessed.in_batches(of: BATCH_SIZE) do |few_pstings|
+      @task.supplier.sync_products(
+        few_pstings.pluck(:product_remote_id),
+        after_batch_callback: checking_off
+      )
+    end
   end
 
   private
@@ -25,8 +32,8 @@ class WideSyncJob < ApplicationJob
   end
 
   def checking_off
-    lambda do |products|
-      @task.pstings.where(product: products).update_all is_processed: true
+    lambda do |remote_ids|
+      @task.pstings.where(product_remote_id: remote_ids).update_all is_processed: true
     end
   end
 end
