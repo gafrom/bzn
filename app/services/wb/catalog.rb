@@ -311,16 +311,17 @@ module Wb
 
     def batch_fetch_from_api_v1(product_remote_ids)
       response_json = fetch_json_from_api_v1("nm=#{product_remote_ids.join(?;)}")
+      return {} if response_json.blank?
 
       response = JSON.parse response_json
       raw_products = response.dig('data', 'products')
 
-      products_attrs = {}
-
       if raw_products.blank?
         @logger.warn "[BATCH_FETCH_FROM_API_V1] Got empty JSON for ids #{product_remote_ids}"
-        return products_attrs
+        return {}
       end
+
+      products_attrs = {}
 
       raw_products.each do |attrs|
         remote_id = attrs[ID].to_i
@@ -400,7 +401,10 @@ module Wb
         raise ex
       end
 
-      response.body if response.success?
+      return response.body if response.success?
+      @logger.error "[FETCH_JSON_FROM_API_V1] Request failed with status '#{response.status}'"
+
+      nil
     end
 
     def synchronize_prices(url, product)
