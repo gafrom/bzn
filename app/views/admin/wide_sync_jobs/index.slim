@@ -25,9 +25,9 @@ h1 Страница товаров Женская
         td= task.source_links.unprocessed.count
         td= task.source_links.processed.count
         td style="padding-right: 35px;"= task.source_links.count
-        td= task.pstings.unprocessed.count
-        td= task.pstings.processed.count
-        td= task.pstings.count
+        td= task.unprocessed_products_counter_cache
+        td= task.processed_products_counter_cache
+        td= task.total_products_counter_cache
 
   h2= t '.reports_creating'
 

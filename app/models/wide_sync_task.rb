@@ -2,12 +2,15 @@
 #
 # Table name: sync_tasks
 #
-#  id            :integer          not null, primary key
-#  supplier_id   :integer
-#  created_at    :datetime         not null
-#  updated_at    :datetime         not null
-#  type          :string
-#  initial_count :integer
+#  id                                 :integer          not null, primary key
+#  supplier_id                        :integer
+#  created_at                         :datetime         not null
+#  updated_at                         :datetime         not null
+#  type                               :string
+#  initial_count                      :integer
+#  total_products_counter_cache       :integer
+#  processed_products_counter_cache   :integer
+#  unprocessed_products_counter_cache :integer
 #
 # Indexes
 #

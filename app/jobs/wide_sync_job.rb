@@ -23,6 +23,15 @@ class WideSyncJob < ApplicationJob
         after_batch_callback: checking_off
       )
     end
+
+    # update counter cache
+    processed_count = @task.pstings.processed.size
+    unprocessed_count = @task.pstings.unprocessed.size
+    @task.update(
+      total_products_counter_cache: processed_count + unprocessed_count,
+      processed_products_counter_cache: processed_count,
+      unprocessed_products_counter_cache: unprocessed_count
+    )
   end
 
   private

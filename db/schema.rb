@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20210207141721) do
+ActiveRecord::Schema.define(version: 20210219231900) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -187,6 +187,9 @@ ActiveRecord::Schema.define(version: 20210207141721) do
     t.datetime "updated_at", null: false
     t.string "type"
     t.integer "initial_count"
+    t.integer "total_products_counter_cache"
+    t.integer "processed_products_counter_cache"
+    t.integer "unprocessed_products_counter_cache"
     t.index ["supplier_id"], name: "index_sync_tasks_on_supplier_id"
   end
 
