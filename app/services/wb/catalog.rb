@@ -431,12 +431,12 @@ module Wb
     end
 
     def delete_old_facts
-      query = DailyFact.where 'created_at < ?', 8.months.ago
+      query = DailyFact.where 'created_at < ?', 1.months.ago
       @deleted_daily_facts_count = query.delete_all
     end
 
     def delete_old_hourly_facts
-      query = HourlyFact.where 'created_at < ?', 8.months.ago
+      query = HourlyFact.where 'created_at < ?', 1.months.ago
       @deleted_hourly_facts_count = query.delete_all
     end
 
