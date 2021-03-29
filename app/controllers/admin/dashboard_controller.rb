@@ -9,6 +9,8 @@ class Admin::DashboardController < AdminController
     @products_count = @latest_updated_product.id
 
     @tasks = DailyReportTask.all.limit(TASKS_LIMIT).order(id: :desc)
+
+    @tables = ApplicationRecord.fetch_table_sizes
   end
 
   private

@@ -57,3 +57,12 @@
                 .description= file_description(basename)
             - else
               = title
+
+
+  .line
+
+  h2 Tables in Database
+
+  ul.something
+    - @tables.each do |db_table|
+      p= "#{db_table['relation']} => #{db_table['total_size']}"
